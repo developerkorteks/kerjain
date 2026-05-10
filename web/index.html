@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lokerwa Dashboard</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0f1e;--surface:#111827;--card:#1a2230;--border:#1f2937;
+      --text:#e2e8f0;--muted:#6b7280;--green:#25d366;
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+    /* HEADER */
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+    .logo{font-size:1rem;font-weight:700;color:var(--green);white-space:nowrap}
+    .logo span{color:var(--muted);font-weight:400;font-size:.8rem}
+    .hdr-nav{display:flex;gap:6px}
+    .nav-btn{padding:5px 12px;border-radius:5px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:5px}
+    .nav-btn:hover{border-color:#4c5166;background:#1e2535}
+    .nav-btn.board{background:#1c1430;border-color:#5b21b6;color:#c084fc}
+    .nav-btn.board:hover{background:#241840}
+    .hdr-stats{display:flex;gap:8px;flex-wrap:wrap}
+    .stat-pill{padding:4px 10px;border-radius:5px;background:var(--card);border:1px solid var(--border);font-size:.75rem;display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .stat-dot{width:7px;height:7px;border-radius:50%}
+    .spacer{flex:1}
+    #ws-badge{font-size:.72rem;padding:3px 9px;border-radius:999px;background:var(--card);border:1px solid var(--border);color:var(--muted)}
+    #ws-badge.ok{color:var(--green);border-color:#1a4a2e}
+    #status-badge{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border)}
+    #status-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+    #status-badge.connected .dot{background:var(--green);box-shadow:0 0 6px #25d36699}
+    #status-badge.connecting .dot{background:#f59e0b;animation:pulse 1s infinite}
+    #status-badge.disconnected .dot{background:#ef4444}
+
+    /* LAYOUT */
+    .container{display:flex;flex:1;overflow:hidden}
+
+    /* SIDEBAR */
+    aside{width:260px;min-width:260px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .sidebar-top{padding:10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:7px;flex-shrink:0}
+    .sidebar-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+    .enabled-count{background:#1a4a2e;color:var(--green);padding:1px 7px;border-radius:10px;font-size:.68rem;font-weight:700}
+    .search-box{position:relative}
+    .search-box input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px 6px 28px;border-radius:6px;font-size:.78rem}
+    .search-box input:focus{outline:none;border-color:#374151}
+    .search-box::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:.7rem;pointer-events:none}
+    .filter-tabs{display:flex;gap:4px}
+    .ftab{flex:1;padding:4px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:.7rem;font-weight:600;cursor:pointer;text-align:center}
+    .ftab.active{background:#1a3a2a;border-color:var(--green);color:var(--green)}
+
+    #groups-list{flex:1;overflow-y:auto;padding:6px}
+    #groups-list::-webkit-scrollbar{width:3px}
+    #groups-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    .group-item{padding:8px 10px;border-radius:7px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:background .12s;border:1px solid transparent}
+    .group-item:hover{background:#1a2535}
+    .group-item.enabled{background:#0d1f14;border-color:#1a4a2e}
+    .group-item.active-filter{border-color:var(--green)!important;background:#0d1f1a!important}
+    .avatar{width:32px;height:32px;border-radius:50%;background:#1f2937;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--muted);flex-shrink:0}
+    .group-item.enabled .avatar{background:#1a3a22;color:var(--green)}
+    .g-info{overflow:hidden;flex:1;min-width:0}
+    .g-name{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .g-meta{font-size:.68rem;color:var(--muted);margin-top:1px;display:flex;gap:5px}
+    .g-cnt{background:var(--card);padding:1px 5px;border-radius:9px}
+    .toggle{position:relative;width:32px;height:18px;flex-shrink:0;cursor:pointer}
+    .toggle input{display:none}
+    .toggle .sl{position:absolute;inset:0;background:#374151;border-radius:999px;transition:background .18s}
+    .toggle input:checked + .sl{background:var(--green)}
+    .toggle .sl::before{content:'';position:absolute;width:12px;height:12px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .18s}
+    .toggle input:checked + .sl::before{transform:translateX(14px)}
+
+    .sidebar-bottom{padding:8px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px}
+    #btn-logout{flex:1;padding:8px;border-radius:6px;border:1px solid #3f1919;background:#1f0d0d;color:#f87171;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .12s}
+    #btn-logout:hover{background:#2d1111;border-color:#ef4444}
+    #btn-logout:disabled{opacity:.4;cursor:not-allowed}
+    .icon-btn{padding:6px 9px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .12s}
+    .icon-btn:hover{border-color:#374151;color:var(--text)}
+    .icon-btn.green{border-color:#1a4a2e;color:var(--green);background:#0d1f14}
+    .icon-btn.green:hover{background:#0f2518}
+    .icon-btn:disabled{opacity:.4;cursor:not-allowed}
+    .g-history-btn{padding:2px 7px;border-radius:4px;border:1px solid #1a4a2e;background:#0d1f14;color:var(--green);font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .12s}
+    .g-history-btn:hover{background:#0f2518}
+    .g-history-btn:disabled{opacity:.4;cursor:not-allowed}
+    #toast{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+    .toast-item{padding:9px 14px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid;animation:fadeIn .18s ease;pointer-events:none;max-width:280px}
+    .toast-item.ok{background:#0d1f14;border-color:#1a4a2e;color:var(--green)}
+    .toast-item.err{background:#1f0d0d;border-color:#3f1919;color:#f87171}
+    .toast-item.info{background:var(--card);border-color:var(--border);color:var(--text)}
+
+    /* MAIN PANEL */
+    #main-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    #qr-panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+    .qr-box{background:#fff;padding:14px;border-radius:14px;box-shadow:0 0 40px #25d36622}
+    .qr-box img{display:block;width:220px;height:220px}
+    .qr-title{font-size:1.2rem;font-weight:700;text-align:center}
+    .qr-sub{font-size:.82rem;color:#9ca3af;text-align:center;max-width:280px;line-height:1.6}
+    .spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite}
+
+    #feed-panel{flex:1;display:none;flex-direction:column;overflow:hidden}
+    .feed-hdr{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+    .feed-title{font-size:.88rem;font-weight:700}
+    .feed-filter{display:flex;gap:4px;flex-wrap:wrap}
+    .ff{padding:3px 9px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:.7rem;cursor:pointer;font-weight:600}
+    .ff.active{background:#1a2e22;border-color:var(--green);color:var(--green)}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef444499;animation:pulse 1s infinite;margin-left:auto;flex-shrink:0}
+    .live-label{font-size:.68rem;font-weight:700;color:#ef4444;letter-spacing:.04em;flex-shrink:0}
+    #msg-count{font-size:.72rem;color:var(--muted)}
+
+    #messages{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:7px}
+    #messages::-webkit-scrollbar{width:4px}
+    #messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    .msg-card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 13px;animation:fadeIn .18s ease}
+    .msg-card.revoked{opacity:.45}
+    .msg-hdr{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap}
+    .sender{font-size:.78rem;font-weight:700;color:var(--green)}
+    .grp-tag{font-size:.68rem;background:var(--surface);color:#9ca3af;padding:2px 7px;border-radius:999px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .msg-time{font-size:.68rem;color:#4b5563;margin-left:auto;white-space:nowrap}
+    .type-badge{font-size:.62rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px;background:var(--surface);color:#6b7280;margin-right:4px}
+    .saved-badge{font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:3px;background:#1a3a22;color:var(--green)}
+    .msg-body{font-size:.82rem;color:#d1d5db;line-height:1.55;word-break:break-word;white-space:pre-wrap}
+    .media-pill{display:inline-flex;align-items:center;gap:4px;font-size:.75rem;background:#1a2e22;color:var(--green);padding:3px 9px;border-radius:999px;margin-top:3px}
+    .reaction-pill{display:inline-flex;align-items:center;gap:4px;font-size:1.1rem;background:var(--surface);padding:3px 10px;border-radius:999px;margin-top:2px}
+    .quoted{background:var(--bg);border-left:3px solid var(--green);border-radius:3px;padding:5px 9px;margin-bottom:5px;font-size:.72rem;color:#6b7280}
+    .quoted .qs{color:var(--green);font-weight:600;margin-bottom:1px}
+    #empty-feed{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#374151}
+    #empty-feed .icon{font-size:2.5rem}
+    #empty-feed p{font-size:.82rem}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Lokerwa <span>Dashboard</span></div>
+  <div class="hdr-nav">
+    <a href="/board" class="nav-btn board">📋 Review Board</a>
+    <a href="/api-test" class="nav-btn">🔌 API Tester</a>
+  </div>
+  <div class="hdr-stats">
+    <div class="stat-pill"><span class="stat-dot" style="background:#25d366"></span><span id="stat-total">–</span> total</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#f59e0b"></span><span id="stat-raw">–</span> raw</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#10b981"></span><span id="stat-valid">–</span> valid</div>
+  </div>
+  <div class="spacer"></div>
+  <span id="ws-badge">WS: --</span>
+  <div id="status-badge" class="disconnected"><span class="dot"></span><span id="status-text">Disconnected</span></div>
+</header>
+
+<div class="container">
+
+  <aside>
+    <div class="sidebar-top">
+      <div class="sidebar-title">
+        Groups
+        <div style="display:flex;align-items:center;gap:5px">
+          <span class="enabled-count" id="enabled-count">0 aktif</span>
+          <button class="icon-btn" onclick="refreshGroups()" title="Refresh daftar group">🔄</button>
+          <button class="icon-btn green" onclick="fetchAllHistory()" title="Fetch history semua group aktif" id="btn-fetch-all">📥 All</button>
+        </div>
+      </div>
+      <div class="search-box">
+        <input id="group-search" type="text" placeholder="Cari group…" oninput="renderGroups()">
+      </div>
+      <div class="filter-tabs">
+        <button class="ftab active" data-f="all"    onclick="setGroupFilter('all',this)">Semua</button>
+        <button class="ftab"        data-f="enabled" onclick="setGroupFilter('enabled',this)">Aktif</button>
+        <button class="ftab"        data-f="msg"     onclick="setGroupFilter('msg',this)">Ada Pesan</button>
+      </div>
+    </div>
+    <div id="groups-list"></div>
+    <div class="sidebar-bottom">
+      <button id="btn-logout" onclick="doLogout()" disabled>⏻ Logout &amp; Reset</button>
+    </div>
+  </aside>
+
+  <div id="main-panel">
+    <div id="qr-panel">
+      <div class="spinner"></div>
+      <div class="qr-title">Connecting…</div>
+      <div class="qr-sub">Tunggu sebentar</div>
+    </div>
+
+    <div id="feed-panel">
+      <div class="feed-hdr">
+        <span class="feed-title">Live Feed</span>
+        <span id="msg-count">0 pesan</span>
+        <div class="feed-filter">
+          <button class="ff active" data-t="all"   onclick="setFeedFilter('all',this)">Semua</button>
+          <button class="ff"        data-t="text"  onclick="setFeedFilter('text',this)">📝 Text</button>
+          <button class="ff"        data-t="image" onclick="setFeedFilter('image',this)">🖼️ Gambar</button>
+        </div>
+        <span class="live-dot"></span>
+        <span class="live-label">LIVE</span>
+      </div>
+      <div id="messages">
+        <div id="empty-feed">
+          <div class="icon">💬</div>
+          <p>Menunggu pesan dari group yang aktif…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const MAX_MESSAGES = 200;
+  const TYPE_META = {
+    text:{icon:'',label:''},image:{icon:'🖼️',label:'Gambar'},video:{icon:'🎬',label:'Video'},
+    audio:{icon:'🎵',label:'Audio'},ptt:{icon:'🎤',label:'Voice note'},document:{icon:'📄',label:'Dokumen'},
+    sticker:{icon:'🎭',label:'Stiker'},location:{icon:'📍',label:'Lokasi'},live_location:{icon:'📡',label:'Live loc'},
+    contact:{icon:'👤',label:'Kontak'},contacts:{icon:'👥',label:'Kontak'},reaction:{icon:'',label:'Reaksi'},
+    poll:{icon:'📊',label:'Poll'},poll_vote:{icon:'✅',label:'Vote'},group_invite:{icon:'🔗',label:'Invite'},
+    revoked:{icon:'🗑️',label:'Dihapus'},edited:{icon:'✏️',label:'Diedit'},
+  };
+
+  let ws = null, msgCount = 0;
+  let groupFilter = 'all', feedFilter = 'all', activeGroupJid = null;
+  const groups = {}, messages = [];
+
+  const statusBadge  = document.getElementById('status-badge');
+  const statusText   = document.getElementById('status-text');
+  const wsBadge      = document.getElementById('ws-badge');
+  const qrPanel      = document.getElementById('qr-panel');
+  const feedPanel    = document.getElementById('feed-panel');
+  const msgContainer = document.getElementById('messages');
+  const groupsList   = document.getElementById('groups-list');
+  const btnLogout    = document.getElementById('btn-logout');
+
+  // ── WebSocket ──
+  function connect() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    ws = new WebSocket(`${proto}://${location.host}/ws`);
+    ws.onopen  = () => { wsBadge.textContent = 'WS: Connected'; wsBadge.className = 'ok'; };
+    ws.onclose = () => { wsBadge.textContent = 'WS: Reconnecting…'; wsBadge.className = ''; setTimeout(connect, 3000); };
+    ws.onerror = () => ws.close();
+    ws.onmessage = (e) => {
+      try {
+        const {type, data} = JSON.parse(e.data);
+        if (type === 'status')  handleStatus(data);
+        if (type === 'qr')      handleQR(data);
+        if (type === 'groups')  handleGroups(data);
+        if (type === 'message') handleMessage(data);
+      } catch(err) { console.error(err); }
+    };
+  }
+
+  // ── Status ──
+  function handleStatus({state}) {
+    statusBadge.className = state;
+    statusText.textContent = state === 'connected' ? 'Connected' : state === 'connecting' ? 'Connecting…' : 'Disconnected';
+    if (state === 'connected') {
+      qrPanel.style.display = 'none';
+      feedPanel.style.display = 'flex';
+      btnLogout.disabled = false;
+      loadStats();
+    } else {
+      qrPanel.style.display = 'flex';
+      feedPanel.style.display = 'none';
+      if (state !== 'connecting') clearState();
+    }
+  }
+
+  function handleQR({png}) {
+    qrPanel.innerHTML = `<div class="qr-title">Scan QR Code</div>
+      <div class="qr-box"><img src="data:image/png;base64,${png}" alt="QR"/></div>
+      <div class="qr-sub">Buka WhatsApp → Linked Devices → Link a Device</div>`;
+    qrPanel.style.display = 'flex';
+    feedPanel.style.display = 'none';
+    statusBadge.className = 'connecting';
+    statusText.textContent = 'Scan QR';
+  }
+
+  // ── Groups ──
+  function handleGroups(list) {
+    if (!list?.length) { Object.keys(groups).forEach(k => delete groups[k]); renderGroups(); return; }
+    const seen = new Set();
+    list.forEach(g => {
+      seen.add(g.jid);
+      if (!groups[g.jid]) groups[g.jid] = {name:g.name, enabled:g.enabled, count:0};
+      else { groups[g.jid].name = g.name; groups[g.jid].enabled = g.enabled; }
+    });
+    Object.keys(groups).forEach(k => { if (!seen.has(k)) delete groups[k]; });
+    renderGroups();
+  }
+
+  function renderGroups() {
+    const q = document.getElementById('group-search').value.toLowerCase();
+    let list = Object.entries(groups);
+
+    // Apply sidebar tab filter
+    if (groupFilter === 'enabled') list = list.filter(([,g]) => g.enabled);
+    if (groupFilter === 'msg')     list = list.filter(([,g]) => g.count > 0);
+
+    // Apply search
+    if (q) list = list.filter(([jid,g]) => (g.name||jid).toLowerCase().includes(q));
+
+    // Sort: enabled first, then by msg count
+    list.sort((a,b) => {
+      if (a[1].enabled !== b[1].enabled) return b[1].enabled ? 1 : -1;
+      return b[1].count - a[1].count;
+    });
+
+    const enabledCnt = Object.values(groups).filter(g => g.enabled).length;
+    document.getElementById('enabled-count').textContent = enabledCnt + ' aktif';
+
+    if (!list.length) {
+      groupsList.innerHTML = '<div style="padding:20px;text-align:center;color:#4b5563;font-size:.78rem;">Tidak ada group</div>';
+      return;
+    }
+    groupsList.innerHTML = list.map(([jid, g]) => {
+      const init = (g.name||jid)[0].toUpperCase();
+      const name = escHtml((g.name||jid).replace(/@.+/,''));
+      const safeJid = escHtml(jid);
+      const isActive = jid === activeGroupJid;
+      return `<div class="group-item${g.enabled?' enabled':''}${isActive?' active-filter':''}" data-jid="${safeJid}" onclick="filterByGroup('${safeJid}')">
+        <div class="avatar">${init}</div>
+        <div class="g-info">
+          <div class="g-name">${name}</div>
+          <div class="g-meta"><span class="g-cnt">${g.count > 0 ? g.count+' msg' : 'no msg'}</span>${g.enabled?'<span style="color:#25d366;font-size:.65rem">● aktif</span>':''}</div>
+        </div>
+        ${g.enabled?`<button class="g-history-btn" onclick="event.stopPropagation();fetchGroupHistory('${safeJid}',this)" title="Ambil history dari WhatsApp">📥</button>`:''}        <label class="toggle" onclick="event.stopPropagation()" title="${g.enabled?'Matikan':'Aktifkan'} tracking">
+          <input type="checkbox" ${g.enabled?'checked':''} onchange="toggleGroup('${safeJid}',this)">
+          <span class="sl"></span>
+        </label>
+      </div>`;
+    }).join('');
+  }
+
+  function setGroupFilter(f, btn) {
+    groupFilter = f;
+    document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGroups();
+  }
+
+  function filterByGroup(jid) {
+    activeGroupJid = (activeGroupJid === jid) ? null : jid;
+    renderGroups();
+    reRenderFeed();
+  }
+
+  function setFeedFilter(t, btn) {
+    feedFilter = t;
+    document.querySelectorAll('.ff').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    reRenderFeed();
+  }
+
+  function reRenderFeed() {
+    const empty = document.getElementById('empty-feed');
+    msgContainer.innerHTML = '';
+    const filtered = messages.filter(m => {
+      if (activeGroupJid && m.group_jid !== activeGroupJid) return false;
+      if (feedFilter !== 'all' && m.msg_type !== feedFilter) return false;
+      return true;
+    });
+    if (!filtered.length) {
+      msgContainer.innerHTML = '<div id="empty-feed"><div class="icon">💬</div><p>Tidak ada pesan sesuai filter</p></div>';
+      return;
+    }
+    filtered.forEach(m => appendMessage(m));
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
+
+  // ── Message ──
+  const SAVED_TYPES = new Set(['text','image']);
+  function handleMessage(msg) {
+    if (groups[msg.group_jid]) groups[msg.group_jid].count++;
+    messages.push(msg);
+    if (messages.length > MAX_MESSAGES) messages.shift();
+    msgCount++;
+    document.getElementById('msg-count').textContent = msgCount + ' pesan';
+    document.getElementById('empty-feed')?.remove();
+
+    // Update sidebar count
+    const badge = document.querySelector(`.group-item[data-jid="${CSS.escape(msg.group_jid)}"] .g-cnt`);
+    if (badge) badge.textContent = (groups[msg.group_jid]?.count||0) + ' msg';
+
+    // Only show if passes current filter
+    if (activeGroupJid && msg.group_jid !== activeGroupJid) return;
+    if (feedFilter !== 'all' && msg.msg_type !== feedFilter) return;
+    appendMessage(msg);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    // Refresh stats periodically
+    if (msgCount % 5 === 0) loadStats();
+  }
+
+  function appendMessage(msg) {
+    const ts = new Date(msg.timestamp).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const gName = escHtml((groups[msg.group_jid]?.name||msg.group_jid).replace(/@.+/,''));
+    const sender = escHtml(msg.sender_name||msg.sender_jid.split('@')[0]);
+    const meta = TYPE_META[msg.msg_type] || {icon:'❓',label:msg.msg_type};
+    const isSaved = SAVED_TYPES.has(msg.msg_type);
+
+    let quotedHtml = '';
+    if (msg.quoted) {
+      const qs = msg.quoted.sender_jid ? msg.quoted.sender_jid.split('@')[0] : '';
+      quotedHtml = `<div class="quoted"><div class="qs">${escHtml(qs)}</div>${escHtml(msg.quoted.body||msg.quoted.msg_type||'')}</div>`;
+    }
+
+    let bodyHtml = '';
+    switch(msg.msg_type) {
+      case 'text':
+        bodyHtml = `${quotedHtml}<div class="msg-body">${escHtml(msg.body)}</div>`; break;
+      case 'reaction':
+        bodyHtml = `<span class="reaction-pill">${escHtml(msg.body)}</span>`; break;
+      case 'revoked':
+        bodyHtml = `<div class="msg-body" style="font-style:italic;color:#6b7280">🗑️ Pesan dihapus</div>`; break;
+      default: {
+        const detail = msg.caption||msg.body||msg.file_name||'';
+        bodyHtml = `${quotedHtml}<span class="media-pill">${meta.icon} ${meta.label}${detail?' · '+escHtml(detail):''}</span>`;
+      }
+    }
+
+    const div = document.createElement('div');
+    div.className = 'msg-card' + (msg.msg_type==='revoked'?' revoked':'');
+    div.innerHTML = `
+      <div class="msg-hdr">
+        <span class="sender">${sender}</span>
+        <span class="grp-tag">${gName}</span>
+        ${isSaved ? '<span class="saved-badge">📥 tersimpan</span>' : ''}
+        <span class="msg-time">${ts}</span>
+      </div>
+      ${bodyHtml}`;
+    msgContainer.appendChild(div);
+  }
+
+  // ── Stats ──
+  async function loadStats() {
+    try {
+      const r = await fetch('/api/jobs?limit=1');
+      const d = await r.json();
+      document.getElementById('stat-total').textContent = d.total ?? '–';
+    } catch{}
+    try {
+      const r2 = await fetch('/api/jobs?limit=1&status=raw');
+      const d2 = await r2.json();
+      document.getElementById('stat-raw').textContent = d2.total ?? '–';
+    } catch{}
+    try {
+      const r3 = await fetch('/api/jobs?limit=1&status=valid');
+      const d3 = await r3.json();
+      document.getElementById('stat-valid').textContent = d3.total ?? '–';
+    } catch{}
+  }
+
+  // ── History & Refresh ──
+  async function fetchGroupHistory(jid, btn) {
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    try {
+      const res = await fetch(`/api/groups/${encodeURIComponent(jid)}/fetch-history?count=200`, {method:'POST'});
+      const d = await res.json();
+      if (res.ok) showToast(`📥 Request terkirim: ${(groups[jid]?.name||jid).slice(0,30)}`, 'ok');
+      else showToast(d.error || 'Gagal', 'err');
+    } catch(e) { showToast('Network error', 'err'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = '📥'; } }
+  }
+
+  async function fetchAllHistory() {
+    const enabled = Object.entries(groups).filter(([,g]) => g.enabled);
+    if (!enabled.length) { showToast('Tidak ada group aktif', 'err'); return; }
+    const btn = document.getElementById('btn-fetch-all');
+    if (btn) btn.disabled = true;
+    let ok = 0;
+    for (const [jid] of enabled) {
+      try {
+        const res = await fetch(`/api/groups/${encodeURIComponent(jid)}/fetch-history?count=200`, {method:'POST'});
+        if (res.ok) ok++;
+      } catch {}
+    }
+    showToast(`📥 ${ok}/${enabled.length} group di-request`, ok===enabled.length?'ok':'info');
+    if (btn) btn.disabled = false;
+  }
+
+  async function refreshGroups() {
+    try {
+      const res = await fetch('/api/groups/refresh', {method:'POST'});
+      const d = await res.json();
+      if (res.ok) {
+        showToast(`🔄 ${d.count} groups loaded`, 'ok');
+        const r2 = await fetch('/api/groups');
+        const list = await r2.json();
+        if (list) handleGroups(list);
+      } else showToast(d.error||'Gagal refresh', 'err');
+    } catch(e) { showToast('Network error', 'err'); }
+  }
+
+  function showToast(msg, type='info', duration=3000) {
+    let container = document.getElementById('toast');
+    if (!container) { container = document.createElement('div'); container.id = 'toast'; document.body.appendChild(container); }
+    const el = document.createElement('div');
+    el.className = `toast-item ${type}`;
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), duration);
+  }
+
+  // ── Actions ──
+  async function toggleGroup(jid, checkbox) {
+    checkbox.disabled = true;
+    try {
+      const res = await fetch('/api/groups/toggle', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jid})});
+      if (res.ok) {
+        const d = await res.json();
+        if (groups[jid]) { groups[jid].enabled = d.enabled; renderGroups(); }
+      } else checkbox.checked = !checkbox.checked;
+    } catch { checkbox.checked = !checkbox.checked; }
+    finally { checkbox.disabled = false; }
+  }
+
+  async function doLogout() {
+    if (!confirm('Logout dan hapus sesi WhatsApp?')) return;
+    btnLogout.disabled = true;
+    await fetch('/api/logout',{method:'POST'});
+    setTimeout(() => fetch('/api/connect',{method:'POST'}), 1000);
+  }
+
+  function clearState() {
+    Object.keys(groups).forEach(k => delete groups[k]);
+    messages.length = 0; msgCount = 0;
+    document.getElementById('msg-count').textContent = '0 pesan';
+    renderGroups();
+    msgContainer.innerHTML = '<div id="empty-feed"><div class="icon">💬</div><p>Menunggu pesan…</p></div>';
+  }
+
+  function escHtml(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  connect();
+  fetch('/api/status').then(r=>r.json()).then(d=>handleStatus(d));
+  fetch('/api/groups').then(r=>r.json()).then(d=>{ if(d) handleGroups(d); });
+  loadStats();
+</script>
+</body>
+</html>

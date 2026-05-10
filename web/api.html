@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>API Tester — Lokerwa</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0f1e;--surface:#111827;--card:#1a2230;--border:#1f2937;
+      --text:#e2e8f0;--muted:#6b7280;--green:#25d366;--red:#ef4444;--amber:#f59e0b;
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+    /* HEADER */
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .logo{font-size:1rem;font-weight:700;color:var(--green)}
+    .logo span{color:var(--muted);font-weight:400;font-size:.8rem}
+    .nav-btn{padding:5px 12px;border-radius:5px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.78rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+    .nav-btn:hover{border-color:#4c5166}
+    .base-pill{margin-left:auto;font-size:.72rem;color:var(--muted);background:var(--card);border:1px solid var(--border);padding:4px 10px;border-radius:5px}
+    .base-pill span{color:var(--green);font-weight:600}
+
+    /* LAYOUT */
+    .layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 49px)}
+
+    /* SIDEBAR — endpoint list */
+    .sidebar{width:240px;min-width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+    .ep-group{padding:8px 12px 4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+    .ep-item{padding:9px 14px;cursor:pointer;border-left:3px solid transparent;font-size:.78rem;font-weight:500;transition:all .12s;border-bottom:1px solid #0d131f}
+    .ep-item:hover{background:#1a2535;border-left-color:#374151}
+    .ep-item.active{background:#0d1f14;border-left-color:var(--green);color:var(--green)}
+    .ep-item .method{display:inline-block;font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:3px;margin-right:5px}
+    .method.GET{background:#1a3a22;color:#34d399}
+    .method.POST{background:#1c2a4a;color:#60a5fa}
+    .method.PATCH{background:#2d1f00;color:#fbbf24}
+    .method.DELETE{background:#2d0f0f;color:#f87171}
+    .ep-item .path{color:var(--muted);font-size:.72rem}
+
+    /* MAIN */
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+    /* REQUEST PANEL */
+    .req-panel{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+    .req-title{font-size:.88rem;font-weight:700}
+    .req-desc{font-size:.75rem;color:var(--muted);line-height:1.5}
+    .url-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .method-badge{font-size:.8rem;font-weight:700;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--card);color:var(--muted);min-width:70px;text-align:center}
+    #req-url{flex:1;min-width:200px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:5px;font-size:.8rem;font-family:monospace}
+    #req-url:focus{outline:none;border-color:#374151}
+    #btn-send{padding:7px 18px;border-radius:5px;background:#1a3a22;border:1px solid var(--green);color:var(--green);font-size:.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+    #btn-send:hover{background:#1f4a28}
+    #btn-send:disabled{opacity:.4;cursor:not-allowed}
+    .send-spinner{width:13px;height:13px;border:2px solid #25d36644;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;display:none}
+
+    /* PARAMS */
+    .params-section{display:flex;flex-direction:column;gap:6px}
+    .params-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+    .params-grid{display:grid;grid-template-columns:1fr 2fr;gap:6px}
+    .param-row{display:contents}
+    .param-row input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-size:.75rem}
+    .param-row input:focus{outline:none;border-color:#374151}
+    .param-row input::placeholder{color:#4b5563}
+    .param-btn{padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:.72rem;cursor:pointer}
+    .param-btn:hover{color:var(--text);border-color:#4c5166}
+    .body-area{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:5px;font-size:.78rem;font-family:monospace;resize:vertical;min-height:80px;line-height:1.5;width:100%}
+    .body-area:focus{outline:none;border-color:#374151}
+
+    /* RESPONSE PANEL */
+    .res-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:16px 20px;gap:10px}
+    .res-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+    .res-title{font-size:.82rem;font-weight:700}
+    .status-badge{font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:4px;background:var(--card);border:1px solid var(--border)}
+    .status-badge.ok{background:#1a3a22;border-color:#1f4a2a;color:#34d399}
+    .status-badge.err{background:#2d0f0f;border-color:#4d1919;color:#f87171}
+    .res-time{font-size:.72rem;color:var(--muted);margin-left:auto}
+    .copy-btn{padding:3px 9px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:.72rem;cursor:pointer}
+    .copy-btn:hover{color:var(--text)}
+    .res-body{flex:1;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 14px;font-family:monospace;font-size:.75rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;animation:fadeIn .2s ease}
+    .res-body::-webkit-scrollbar{width:4px}
+    .res-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+    .ph{color:#374151;font-size:.82rem;font-style:italic}
+
+    /* JSON highlighting */
+    .jk{color:#93c5fd}
+    .jstr{color:#86efac}
+    .jnum{color:#fca5a5}
+    .jbool{color:#fbbf24}
+    .jnull{color:#6b7280}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Lokerwa <span>API Tester</span></div>
+  <a href="/" class="nav-btn">🏠 Dashboard</a>
+  <a href="/board" class="nav-btn">📋 Board</a>
+  <div class="base-pill">Base URL: <span id="base-url-display"></span></div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="ep-group">Jobs</div>
+    <div class="ep-item active" onclick="selectEp(this)" data-method="GET" data-path="/api/jobs" data-desc="List semua job postings dengan filter opsional." data-params='[["status","raw | review | valid"],["type","text | image"],["group","source_group JID"],["limit","jumlah per halaman (default 20)"],["page","halaman (default 1)"]]'>
+      <span class="method GET">GET</span>/api/jobs
+    </div>
+    <div class="ep-item" onclick="selectEp(this)" data-method="GET" data-path="/api/jobs?status=valid&limit=100" data-desc="Ambil semua job valid — endpoint utama untuk Django / consumer lain." data-params='[]'>
+      <span class="method GET">GET</span><span class="path">/api/jobs?status=valid</span>
+    </div>
+    <div class="ep-item" onclick="selectEp(this)" data-method="GET" data-path="/api/jobs/{id}" data-desc="Ambil satu job posting berdasarkan ID." data-params='[["id","ID job posting (ganti {id} di URL)"]]'>
+      <span class="method GET">GET</span>/api/jobs/:id
+    </div>
+    <div class="ep-item" onclick="selectEp(this)" data-method="PATCH" data-path="/api/jobs/{id}" data-desc="Update sebagian field job posting. Semua field opsional." data-body='{"status":"valid","is_job_posting":true,"title":"Staff Gudang","company":"PT Contoh","location":"Jakarta","gender":"male","age_min":18,"age_max":35,"education":"SMA","salary":"UMR","work_hours":"08.00-17.00","contact":"081234567890","contact_type":"wa","requirements":["Sehat jasmani"],"benefits":["BPJS"]}'>
+      <span class="method PATCH">PATCH</span>/api/jobs/:id
+    </div>
+    <div class="ep-group">Groups</div>
+    <div class="ep-item" onclick="selectEp(this)" data-method="GET" data-path="/api/groups" data-desc="List semua WhatsApp group yang diikuti beserta status enabled/disabled." data-params='[]'>
+      <span class="method GET">GET</span>/api/groups
+    </div>
+    <div class="ep-item" onclick="selectEp(this)" data-method="POST" data-path="/api/groups/toggle" data-desc="Toggle tracking on/off untuk satu group." data-body='{"jid":"120363XXXXXXXXXXXX@g.us"}'>
+      <span class="method POST">POST</span>/api/groups/toggle
+    </div>
+    <div class="ep-group">System</div>
+    <div class="ep-item" onclick="selectEp(this)" data-method="GET" data-path="/api/status" data-desc="Status koneksi WhatsApp: connected / connecting / disconnected." data-params='[]'>
+      <span class="method GET">GET</span>/api/status
+    </div>
+    <div class="ep-item" onclick="selectEp(this)" data-method="GET" data-path="/health" data-desc="Health check sederhana." data-params='[]'>
+      <span class="method GET">GET</span>/health
+    </div>
+    <div class="ep-item" onclick="selectEp(this)" data-method="POST" data-path="/api/logout" data-desc="Logout dari WhatsApp dan hapus sesi. Hati-hati!" data-params='[]'>
+      <span class="method POST">POST</span>/api/logout
+    </div>
+  </nav>
+
+  <!-- MAIN PANEL -->
+  <div class="main">
+    <div class="req-panel">
+      <div>
+        <div class="req-title" id="ep-title">GET /api/jobs</div>
+        <div class="req-desc" id="ep-desc">List semua job postings dengan filter opsional.</div>
+      </div>
+      <div class="url-row">
+        <div class="method-badge" id="method-badge">GET</div>
+        <input id="req-url" type="text" spellcheck="false"/>
+        <button id="btn-send" onclick="sendReq()">
+          <span class="send-spinner" id="spin"></span>
+          Send
+        </button>
+      </div>
+
+      <div id="params-section" class="params-section">
+        <div class="params-title">Query Params</div>
+        <div class="params-grid" id="params-grid"></div>
+        <button class="param-btn" onclick="addParam()" style="width:fit-content">+ Tambah param</button>
+      </div>
+
+      <div id="body-section" style="display:none" class="params-section">
+        <div class="params-title">Request Body (JSON)</div>
+        <textarea id="req-body" class="body-area" rows="5" spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="res-panel">
+      <div class="res-header">
+        <span class="res-title">Response</span>
+        <span class="status-badge" id="status-badge" style="display:none"></span>
+        <span class="res-time" id="res-time"></span>
+        <button class="copy-btn" onclick="copyRes()" id="copy-btn" style="display:none">📋 Copy</button>
+      </div>
+      <div class="res-body" id="res-body"><span class="ph">Pilih endpoint dan klik Send…</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Base URL is derived from current origin — no hardcoded host
+  const BASE = location.origin;
+  document.getElementById('base-url-display').textContent = BASE;
+
+  let currentMethod = 'GET';
+  let currentPath   = '/api/jobs';
+  let extraParams   = [];
+
+  // ── Endpoint selection ──
+  function selectEp(el) {
+    document.querySelectorAll('.ep-item').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+
+    currentMethod = el.dataset.method;
+    currentPath   = el.dataset.path;
+    extraParams   = [];
+
+    document.getElementById('ep-title').textContent = `${currentMethod} ${currentPath}`;
+    document.getElementById('ep-desc').textContent  = el.dataset.desc || '';
+    document.getElementById('method-badge').textContent = currentMethod;
+    document.getElementById('method-badge').className   = 'method-badge';
+
+    buildUrl();
+
+    // Params
+    const rawParams = el.dataset.params ? JSON.parse(el.dataset.params) : [];
+    renderParams(rawParams);
+
+    // Body
+    const bodySection = document.getElementById('body-section');
+    const bodyArea    = document.getElementById('req-body');
+    if (el.dataset.body) {
+      bodySection.style.display = '';
+      bodyArea.value = JSON.stringify(JSON.parse(el.dataset.body), null, 2);
+    } else {
+      bodySection.style.display = 'none';
+      bodyArea.value = '';
+    }
+
+    clearResponse();
+  }
+
+  function buildUrl() {
+    const allInputs = document.querySelectorAll('.param-key');
+    const parts = [];
+    let path = currentPath;
+    allInputs.forEach(ki => {
+      const row = ki.closest('[data-pi]');
+      const vi  = row ? row.querySelector('.param-val') : null;
+      if (!vi) return;
+      const k = ki.value.trim(), v = vi.value.trim();
+      if (!k) return;
+      if (path.includes(`{${k}}`)) {
+        path = path.replace(`{${k}}`, encodeURIComponent(v));
+      } else if (v !== '') {
+        parts.push(`${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+      }
+    });
+    const qs = parts.length ? '?' + parts.join('&') : '';
+    document.getElementById('req-url').value = BASE + path + qs;
+  }
+
+  function renderParams(paramDefs) {
+    const grid = document.getElementById('params-grid');
+    grid.innerHTML = '';
+    paramDefs.forEach(([k, ph], i) => {
+      const row = document.createElement('div');
+      row.className = 'param-row';
+      row.dataset.pi = i;
+      row.innerHTML = `
+        <input class="param-key" value="${esc(k)}" placeholder="key" oninput="buildUrl()" readonly>
+        <input class="param-val" value="" placeholder="${esc(ph)}" oninput="buildUrl()">`;
+      grid.appendChild(row);
+    });
+    // Restore extra params
+    extraParams.forEach(([k,v], i) => {
+      addParamRow(k, v, paramDefs.length + i);
+    });
+  }
+
+  function addParam() {
+    const idx = document.querySelectorAll('.param-row').length;
+    addParamRow('', '', idx);
+  }
+
+  function addParamRow(k, v, i) {
+    const grid = document.getElementById('params-grid');
+    const row  = document.createElement('div');
+    row.className = 'param-row';
+    row.dataset.pi = i;
+    row.innerHTML = `
+      <input class="param-key" value="${esc(k)}" placeholder="key" oninput="buildUrl()">
+      <input class="param-val" value="${esc(v)}" placeholder="value" oninput="buildUrl()">`;
+    grid.appendChild(row);
+    buildUrl();
+  }
+
+  // ── Send ──
+  async function sendReq() {
+    const url = document.getElementById('req-url').value.trim();
+    if (!url) return;
+
+    const btn    = document.getElementById('btn-send');
+    const spinner = document.getElementById('spin');
+    btn.disabled = true;
+    spinner.style.display = '';
+
+    const bodyText = document.getElementById('req-body').value.trim();
+    const opts = { method: currentMethod, headers: {} };
+    if (bodyText && ['POST','PATCH','PUT'].includes(currentMethod)) {
+      opts.body = bodyText;
+      opts.headers['Content-Type'] = 'application/json';
+    }
+
+    const t0 = Date.now();
+    try {
+      const res  = await fetch(url, opts);
+      const elapsed = Date.now() - t0;
+      const text = await res.text();
+      showResponse(res.status, text, elapsed);
+    } catch(e) {
+      showResponse(0, e.message, Date.now() - t0);
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = 'none';
+    }
+  }
+
+  function showResponse(status, text, elapsed) {
+    const sb = document.getElementById('status-badge');
+    sb.style.display = '';
+    sb.textContent   = status || 'Error';
+    sb.className     = 'status-badge ' + (status >= 200 && status < 300 ? 'ok' : 'err');
+    document.getElementById('res-time').textContent = elapsed + ' ms';
+    document.getElementById('copy-btn').style.display = '';
+
+    const rb = document.getElementById('res-body');
+    try {
+      const obj = JSON.parse(text);
+      rb.innerHTML = highlight(JSON.stringify(obj, null, 2));
+    } catch {
+      rb.textContent = text;
+    }
+  }
+
+  function clearResponse() {
+    document.getElementById('status-badge').style.display = 'none';
+    document.getElementById('res-time').textContent = '';
+    document.getElementById('copy-btn').style.display = 'none';
+    document.getElementById('res-body').innerHTML = '<span class="ph">Klik Send untuk melihat response…</span>';
+  }
+
+  async function copyRes() {
+    const text = document.getElementById('res-body').innerText;
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✅ Copied';
+    setTimeout(() => btn.textContent = '📋 Copy', 1500);
+  }
+
+  // ── JSON syntax highlight ──
+  function highlight(json) {
+    return json
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+        if (/^"/.test(m)) {
+          return /:$/.test(m) ? `<span class="jk">${m}</span>` : `<span class="jstr">${m}</span>`;
+        }
+        if (/true|false/.test(m)) return `<span class="jbool">${m}</span>`;
+        if (/null/.test(m))       return `<span class="jnull">${m}</span>`;
+        return `<span class="jnum">${m}</span>`;
+      });
+  }
+
+  function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Boot — select first endpoint
+  document.querySelector('.ep-item').click();
+</script>
+</body>
+</html>
