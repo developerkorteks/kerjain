@@ -5,6 +5,7 @@ import (
 	"embed"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 
@@ -57,19 +58,33 @@ func main() {
 		data, _ := webFS.ReadFile("web/index.html")
 		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
 	})
-	r.GET("/board", func(c *gin.Context) {
+	boardUser := os.Getenv("BOARD_USER")
+	boardPass := os.Getenv("BOARD_PASS")
+	if boardUser == "" {
+		boardUser = "admin"
+	}
+	if boardPass == "" {
+		boardPass = "kerjain2025"
+	}
+	boardAuth := gin.BasicAuth(gin.Accounts{boardUser: boardPass})
+
+	r.GET("/board", boardAuth, func(c *gin.Context) {
 		data, _ := webFS.ReadFile("web/board.html")
 		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
 	})
-	r.GET("/api-test", func(c *gin.Context) {
+	r.GET("/api-test", boardAuth, func(c *gin.Context) {
 		data, _ := webFS.ReadFile("web/api.html")
 		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
 	})
 
 	handler.Register(r, mediaDir)
 
-	log.Println("Server running on :8080")
-	if err := r.Run(":8080"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Println("Server running on :" + port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -5,9 +5,24 @@ import (
 	"fmt"
 	"time"
 
+	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
+
+// NormalizeJID resolves a @lid JID to a @s.whatsapp.net phone-based JID using the
+// client's LID store. Returns the original JID unchanged if not a LID or resolution fails.
+func NormalizeJID(cli *whatsmeow.Client, jid types.JID) types.JID {
+	if jid.Server != "lid" {
+		return jid
+	}
+	pn, err := cli.Store.LIDs.GetPNForLID(context.Background(), jid)
+	if err != nil || pn.IsEmpty() {
+		return jid
+	}
+	return pn
+}
 
 type QuotedMsg struct {
 	SenderJID string `json:"sender_jid"`
@@ -50,11 +65,20 @@ func (m *Manager) processMessage(evt *events.Message) {
 		return
 	}
 
+	m.clientMu.RLock()
+	cli := m.client
+	m.clientMu.RUnlock()
+
+	senderJID := evt.Info.Sender
+	if cli != nil {
+		senderJID = NormalizeJID(cli, senderJID)
+	}
+
 	msg := GroupMessage{
 		MsgID:      evt.Info.ID,
 		GroupJID:   groupJID,
 		GroupName:  m.groupName(groupJID),
-		SenderJID:  evt.Info.Sender.String(),
+		SenderJID:  senderJID.String(),
 		SenderName: evt.Info.PushName,
 		Timestamp:  evt.Info.Timestamp,
 	}

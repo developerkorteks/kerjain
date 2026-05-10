@@ -1,0 +1,335 @@
+{% load static %}<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- ── Primary SEO ──────────────────────────────────────────── -->
+  <title>{% block title %}Kerjain — Info Loker Semarang, Update Tiap Hari{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Kerjain: info lowongan kerja casual, part-time, magang, dan full-time yang dikurasi dari berbagai komunitas loker aktif di Semarang. Cocok untuk mahasiswa, pelajar, dan pencari kerja.{% endblock %}"/>
+  <meta name="keywords" content="{% block meta_keywords %}lowongan kerja semarang, loker semarang, casual worker semarang, part time semarang, loker mahasiswa semarang, loker fresh graduate, info loker, full time semarang{% endblock %}"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="Kerjain by GRNStore"/>
+  <meta name="language" content="Indonesian"/>
+  <link rel="canonical" href="{{ SITE_URL }}{% block canonical_path %}{% endblock %}"/>
+
+  <!-- ── Open Graph ───────────────────────────────────────────── -->
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}"/>
+  <meta property="og:site_name" content="Kerjain"/>
+  <meta property="og:url" content="{{ SITE_URL }}{% block og_url_path %}{% endblock %}"/>
+  <meta property="og:title" content="{% block og_title %}Kerjain — Info Loker Semarang, Update Tiap Hari{% endblock %}"/>
+  <meta property="og:description" content="{% block og_description %}Info lowongan kerja casual, part-time, magang & full-time yang dikurasi dari berbagai komunitas loker di Semarang. Difilter manual, update tiap hari.{% endblock %}"/>
+  <meta property="og:image" content="{{ SITE_URL }}{% static 'img/logo.png' %}"/>
+  <meta property="og:image:width" content="1070"/>
+  <meta property="og:image:height" content="280"/>
+  <meta property="og:locale" content="id_ID"/>
+
+  <!-- ── Twitter Card ─────────────────────────────────────────── -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="{% block tw_title %}Kerjain — Info Loker Semarang{% endblock %}"/>
+  <meta name="twitter:description" content="{% block tw_description %}Info lowongan kerja casual, part-time, magang & full-time dari berbagai komunitas loker aktif di Semarang.{% endblock %}"/>
+  <meta name="twitter:image" content="{{ SITE_URL }}{% static 'img/logo.png' %}"/>
+
+  <!-- ── Favicon ──────────────────────────────────────────────── -->
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}"/>
+  <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}"/>
+
+  <!-- ── Structured Data ──────────────────────────────────────── -->
+  {% block structured_data %}{% endblock %}
+
+  {% if UMAMI_URL and UMAMI_WEBSITE_ID %}
+  <script defer src="{{ UMAMI_URL }}" data-website-id="{{ UMAMI_WEBSITE_ID }}"></script>
+  {% endif %}
+
+  {% block meta %}{% endblock %}
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+      max-width: 100%;
+    }
+
+    body {
+      background: #f8fafc;
+      min-height: 100vh;
+      color: #0f172a;
+    }
+
+    /* Glass surfaces */
+    .glass {
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.65);
+    }
+    .glass-light {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.55);
+    }
+
+    /* Card */
+    .card {
+      border-radius: 24px;
+      border: 1px solid rgba(226,232,240,0.6);
+      box-shadow: 0 4px 24px rgba(15,23,42,0.05);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 48px rgba(15,23,42,0.09);
+    }
+
+    /* Chip / badge */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .chip-active {
+      background: #0f172a !important;
+      color: #fff !important;
+      border-color: #0f172a !important;
+    }
+    .chip-default {
+      background: rgba(255,255,255,0.7);
+      border-color: #e2e8f0;
+      color: #475569;
+    }
+    .chip-default:hover {
+      background: rgba(255,255,255,0.95);
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+
+    /* Btn */
+    .btn-dark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: #0f172a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-dark:hover { background: #1e293b; transform: translateY(-1px); }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: rgba(241,245,249,0.8);
+      color: #475569;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: #f1f5f9; color: #0f172a; }
+
+    /* Ambient glow behind grid */
+    .glow-bg {
+      position: relative;
+    }
+    .glow-bg::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse at center, rgba(99,102,241,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-bg > * { position: relative; z-index: 1; }
+
+    /* Typography */
+    .display { font-size: clamp(36px, 5vw, 54px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+    .heading  { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3; }
+    .subtext  { font-size: 14px; color: #64748b; line-height: 1.6; }
+    .muted    { font-size: 12px; color: #94a3b8; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .fade-up { animation: fadeUp 0.4s ease both; }
+
+
+    /* ── Responsive ───────────────────────────────────── */
+    /* Grid breakpoints */
+    .grid-main {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;               /* mobile: 1 col */
+    }
+    @media (min-width: 640px) {
+      .grid-main { grid-template-columns: repeat(2, 1fr); gap: 18px; } /* tablet: 2 col */
+    }
+    @media (min-width: 1024px) {
+      .grid-main { grid-template-columns: repeat(3, 1fr); gap: 20px; } /* desktop: 3 col */
+    }
+
+    /* Filter bar horizontal scroll — parent must clip */
+    .filter-wrap {
+      overflow: hidden;           /* clip the scrollable child */
+      width: 100%;
+      max-width: 100%;
+    }
+    .filter-scroll {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+      width: 100%;
+      min-width: 0;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .chip { flex-shrink: 0; }       /* chips don't shrink inside scroll */
+    .filter-divider { flex-shrink: 0; width: 1px; height: 18px; background: #e2e8f0; }
+
+    /* Prevent card text from blowing layout */
+    .card * { min-width: 0; word-break: break-word; }
+    .card img { max-width: 100%; }
+
+    /* Navbar mobile */
+    @media (max-width: 767px) {
+      .nav-links { display: none !important; }
+      .nav-cta { display: none !important; }
+      .nav-inner { padding: 10px 16px !important; border-radius: 14px !important; gap: 8px !important; }
+    }
+
+    /* Hero mobile */
+    @media (max-width: 639px) {
+      .hero-section { padding: 32px 0 24px !important; }
+      .display { font-size: 30px !important; }
+      .hero-sub { display: none; }
+    }
+
+    /* Main padding mobile */
+    @media (max-width: 639px) {
+      main { padding-left: 12px !important; padding-right: 12px !important; }
+      .nav-wrap { padding: 8px 10px !important; }
+    }
+
+    /* Detail page 2-col → 1-col on mobile */
+    @media (max-width: 900px) {
+      .detail-grid { grid-template-columns: 1fr !important; }
+      .detail-sidebar { position: static !important; }
+    }
+
+    /* Sort row on mobile: show below chips */
+    .sort-row-mobile {
+      display: none;
+    }
+    @media (max-width: 639px) {
+      .sort-row-mobile { display: flex; align-items: center; gap: 8px; padding-top: 10px; }
+      .sort-row-desktop { display: none !important; }
+    }
+
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <div class="sticky top-0 z-50 px-4 pt-4 nav-wrap">
+    <nav class="glass nav-inner max-w-7xl mx-auto rounded-2xl px-6 py-3.5 flex items-center gap-6 shadow-sm">
+      <!-- Logo -->
+      <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0">
+        <div style="width:32px;height:32px;border-radius:10px;background:#0f172a;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="color:#fff;font-size:15px;font-weight:900;letter-spacing:-1px">KJ</span>
+        </div>
+        <span style="font-size:16px;font-weight:800;color:#0f172a;letter-spacing:-0.02em">Kerjain</span>
+        <span style="color:#cbd5e1;font-size:13px;font-weight:400;margin:0 2px">by</span>
+        <img src="{% static 'img/logo.png' %}" alt="GRNStore" style="height:22px;width:auto;object-fit:contain"/>
+      </a>
+
+      <!-- Nav links -->
+      <div class="nav-links" style="display:flex;gap:2px;align-items:center;margin:0 auto">
+        <a href="{% url 'home' %}" style="padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:#475569;text-decoration:none;transition:all .15s" onmouseover="this.style.color='#0f172a';this.style.background='rgba(241,245,249,0.8)'" onmouseout="this.style.color='#475569';this.style.background='transparent'">Beranda</a>
+        <a href="{% url 'job_list' %}" style="padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:#475569;text-decoration:none;transition:all .15s" onmouseover="this.style.color='#0f172a';this.style.background='rgba(241,245,249,0.8)'" onmouseout="this.style.color='#475569';this.style.background='transparent'">Semua Loker</a>
+        <a href="{% url 'about' %}" style="padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:#475569;text-decoration:none;transition:all .15s" onmouseover="this.style.color='#0f172a';this.style.background='rgba(241,245,249,0.8)'" onmouseout="this.style.color='#475569';this.style.background='transparent'">Tentang</a>
+      </div>
+
+      <!-- CTA -->
+      <a href="{% url 'job_list' %}" class="btn-dark nav-cta" style="padding:8px 18px;font-size:13px;margin-left:auto">
+        Cari Kerja
+      </a>
+    </nav>
+  </div>
+
+  <main style="max-width:1200px;margin:0 auto;padding:0 24px 80px;width:100%">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  <footer style="border-top:1px solid rgba(226,232,240,0.5);padding:40px 24px;text-align:center">
+    <p style="font-size:15px;font-weight:800;color:#0f172a;margin-bottom:6px;letter-spacing:-0.02em">Kerjain</p>
+    <p class="muted" style="margin-bottom:16px">Info loker dari berbagai komunitas &nbsp;&middot;&nbsp; &copy; 2026</p>
+    <p class="muted" style="font-size:11px;max-width:480px;margin:0 auto;line-height:1.6">
+      Platform agregasi. Kami tidak memverifikasi keabsahan info loker. Selalu lakukan verifikasi mandiri sebelum menghubungi perekrut.
+    </p>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+
+  <script>
+    (function(){
+      // Disable right-click
+      document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+      // Disable devtools shortcuts
+      document.addEventListener('keydown', function(e){
+        // F12
+        if(e.key === 'F12') { e.preventDefault(); return false; }
+        // Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C / Ctrl+Shift+K
+        if(e.ctrlKey && e.shiftKey && ['I','J','C','K'].includes(e.key.toUpperCase())) { e.preventDefault(); return false; }
+        // Ctrl+U (view source)
+        if(e.ctrlKey && e.key.toUpperCase() === 'U') { e.preventDefault(); return false; }
+        // Ctrl+S (save page)
+        if(e.ctrlKey && e.key.toUpperCase() === 'S') { e.preventDefault(); return false; }
+      });
+      // Disable text selection (optional – comment out if too aggressive)
+      // document.addEventListener('selectstart', function(e){ e.preventDefault(); });
+    })();
+  </script>
+</body>
+</html>

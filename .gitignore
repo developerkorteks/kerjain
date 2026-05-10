@@ -1,0 +1,41 @@
+# ── Data & databases ──────────────────────────────────────────
+data/jobs.db
+data/jobs.db-shm
+data/jobs.db-wal
+data/whatsapp.db
+data/whatsapp.db-shm
+data/whatsapp.db-wal
+data/media/
+
+# ── Secrets & env ─────────────────────────────────────────────
+frontend/.env
+*.env
+.env.local
+
+# ── Python / Django ───────────────────────────────────────────
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+frontend/staticfiles/
+
+# ── Go ────────────────────────────────────────────────────────
+lokerwa-bin
+/lokerwa
+
+# ── IDE & OS ──────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Misc ──────────────────────────────────────────────────────
+*.bak
+*.log
+image.png

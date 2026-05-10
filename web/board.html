@@ -11,27 +11,48 @@
   --text:#e2e8f0;--muted:#8892a4;
   --raw-hdr:#1c2030;--rev-hdr:#1c1508;--val-hdr:#0d1f18;
   --raw-clr:#6b7280;--rev-clr:#f59e0b;--val-clr:#10b981;
+  --sidebar:#151820;
 }
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden}
 
 /* HEADER */
-.hdr{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hdr{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
 .hdr-title{font-size:1rem;font-weight:700;color:#a78bfa;white-space:nowrap}
 .hdr-title a{color:#6366f1;text-decoration:none;font-size:.8rem;margin-left:8px;font-weight:400}
 .hdr-title a:hover{text-decoration:underline}
 .filters{display:flex;gap:6px;flex:1;flex-wrap:wrap}
 .filters select,.filters input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:5px;font-size:.78rem;cursor:pointer}
-.filters input{flex:1;min-width:140px}
-.stats{display:flex;gap:10px;font-size:.76rem;flex-shrink:0}
+.filters input{flex:1;min-width:120px}
+.stats{display:flex;gap:10px;font-size:.76rem;flex-shrink:0;align-items:center}
 .stat{display:flex;align-items:center;gap:4px}
 .dot{width:8px;height:8px;border-radius:50%}
 .d-raw{background:var(--raw-clr)}.d-rev{background:var(--rev-clr)}.d-val{background:var(--val-clr)}
 
+/* LAYOUT */
+.layout{display:flex;height:calc(100vh - 48px);overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-hdr{padding:10px 12px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);flex-shrink:0}
+.grp-list{flex:1;overflow-y:auto;padding:6px}
+.grp-list::-webkit-scrollbar{width:3px}
+.grp-list::-webkit-scrollbar-thumb{background:var(--border)}
+.grp-item{padding:8px 10px;border-radius:6px;cursor:pointer;transition:background .12s;margin-bottom:2px}
+.grp-item:hover{background:#1e2130}
+.grp-item.active{background:#1e2235;border:1px solid #3730a3}
+.grp-name{font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grp-badges{display:flex;gap:4px;flex-wrap:wrap}
+.grp-badge{font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:10px}
+.gb-raw{background:#1e2333;color:#6b7280;border:1px solid #2d3147}
+.gb-raw.has{background:#272038;color:#f59e0b;border-color:#78350f}
+.gb-val{background:#0d1f18;color:#10b981;border:1px solid #064e3b}
+.sidebar-footer{padding:8px;border-top:1px solid var(--border);flex-shrink:0}
+
 /* BOARD */
-.board{display:flex;height:calc(100vh - 48px);overflow:hidden}
-.col{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:300px}
+.board{display:flex;flex:1;overflow:hidden}
+.col{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:260px}
 .col:last-child{border-right:none}
-.col-hdr{padding:10px 14px;font-size:.8rem;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px;flex-shrink:0;border-bottom:1px solid var(--border);text-transform:uppercase}
+.col-hdr{padding:10px 14px;font-size:.78rem;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px;flex-shrink:0;border-bottom:1px solid var(--border);text-transform:uppercase}
 .col-raw .col-hdr{background:var(--raw-hdr)}
 .col-rev .col-hdr{background:var(--rev-hdr)}
 .col-val .col-hdr{background:var(--val-hdr)}
@@ -53,8 +74,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .t-image{background:#1e3a5f;color:#60a5fa}
 .t-text{background:#2d1b4e;color:#c084fc}
 .nb-badge{background:#7f1d1d;color:#fca5a5;padding:1px 6px;border-radius:3px;font-size:.65rem;font-weight:700}
-.card-grp{flex:1;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.card-time{color:#4c5166;flex-shrink:0}
+.card-time{color:#4c5166;flex-shrink:0;font-size:.7rem}
 
 .card-img{width:100%;height:130px;object-fit:cover;border-radius:5px;margin-bottom:7px;cursor:pointer;display:block}
 .card-img:hover{opacity:.88}
@@ -76,7 +96,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .b-back{background:#1f2937;color:#9ca3af}
 .b-del{background:#3b0000;color:#f87171;padding:4px 7px}
 
-.empty-col{text-align:center;padding:40px 16px;color:#3d4261;font-size:.82rem}
+.empty-col{text-align:center;padding:40px 16px;color:#3d4261;font-size:.82rem;line-height:1.6}
+.empty-pick{text-align:center;padding:60px 24px;color:#3d4261;font-size:.9rem;line-height:1.8}
 
 /* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:12px}
@@ -98,43 +119,55 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .b-cancel{background:var(--card);color:var(--muted);padding:8px 14px}
 </style>
 </head>
-<body>
+<body style="display:flex;flex-direction:column;height:100vh">
 
 <div class="hdr">
   <div class="hdr-title">Lokerwa <span style="color:var(--muted);font-weight:400">Board</span>
     <a href="/">← Dashboard</a>
-    <a href="/api-test" style="font-size:.72rem;color:#9ca3af;text-decoration:none;border:1px solid #1f2937;padding:3px 9px;border-radius:4px;background:#1a2230;margin-left:4px">🔌 API Tester</a>
   </div>
   <div class="filters">
-    <select id="fGroup"><option value="">Semua Group</option></select>
     <select id="fType">
       <option value="">Semua Tipe</option>
-      <option value="text">📝 Text</option>
-      <option value="image">🖼️ Image</option>
+      <option value="text">Text</option>
+      <option value="image">Image</option>
     </select>
     <input id="fSearch" type="text" placeholder="Cari title, kontak, teks…">
   </div>
   <div class="stats">
-    <span class="stat"><span class="dot d-raw"></span><span id="sRaw">0</span> raw</span>
-    <span class="stat"><span class="dot d-rev"></span><span id="sRev">0</span> perbaiki</span>
+    <span class="stat"><span class="dot d-raw"></span><span id="sRaw">0</span> pending</span>
+    <span class="stat"><span class="dot d-rev"></span><span id="sRev">0</span> edit</span>
     <span class="stat"><span class="dot d-val"></span><span id="sVal">0</span> valid</span>
-    <button class="btn b-back" style="padding:3px 9px" onclick="loadAll()">↺ Refresh</button>
+    <button class="btn b-back" style="padding:3px 9px;margin-left:4px" onclick="loadAll()">↺</button>
   </div>
 </div>
 
-<div class="board">
-  <div class="col col-raw">
-    <div class="col-hdr">📥 Perlu Review <span class="badge" id="hRaw">0</span></div>
-    <div class="cards" id="cRaw"><div class="empty-col">Memuat…</div></div>
+<div class="layout">
+
+  <!-- GROUP SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-hdr">Grup WhatsApp</div>
+    <div class="grp-list" id="grpList"><div style="padding:16px;font-size:.75rem;color:#3d4261">Memuat…</div></div>
+    <div class="sidebar-footer">
+      <button class="btn b-back" style="width:100%;font-size:.72rem" onclick="selectGroup(null)">Semua grup</button>
+    </div>
   </div>
-  <div class="col col-rev">
-    <div class="col-hdr">✏️ Diperbaiki <span class="badge" id="hRev">0</span></div>
-    <div class="cards" id="cRev"></div>
+
+  <!-- KANBAN -->
+  <div class="board">
+    <div class="col col-raw">
+      <div class="col-hdr">Perlu Review <span class="badge" id="hRaw">0</span></div>
+      <div class="cards" id="cRaw"><div class="empty-pick">← Pilih grup di kiri<br><span style="font-size:.75rem">untuk mulai review</span></div></div>
+    </div>
+    <div class="col col-rev">
+      <div class="col-hdr">Diperbaiki <span class="badge" id="hRev">0</span></div>
+      <div class="cards" id="cRev"></div>
+    </div>
+    <div class="col col-val">
+      <div class="col-hdr">Valid <span class="badge" id="hVal">0</span></div>
+      <div class="cards" id="cVal"></div>
+    </div>
   </div>
-  <div class="col col-val">
-    <div class="col-hdr">✅ Valid <span class="badge" id="hVal">0</span></div>
-    <div class="cards" id="cVal"></div>
-  </div>
+
 </div>
 
 <!-- Edit Modal -->
@@ -231,46 +264,71 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 <script>
 let all = [];
 let editId = null;
+let selectedGroup = null; // null = no group selected yet
 
-// ─── LOAD ───────────────────────────────────────────────
+// ─── LOAD ────────────────────────────────────────────────
 async function loadAll() {
   try {
-    const r = await fetch('/api/jobs?limit=1000');
+    // is_job_posting=any → load ALL records (admin needs to classify everything)
+    const r = await fetch('/api/jobs?limit=2000&is_job_posting=any');
     const d = await r.json();
     all = d.jobs || [];
-    buildGroupFilter();
+    buildGroupSidebar();
     render();
   } catch(e) {
     document.getElementById('cRaw').innerHTML = '<div class="empty-col">Gagal memuat data</div>';
   }
 }
 
-function buildGroupFilter() {
-  const sel = document.getElementById('fGroup');
-  const prev = sel.value;
+// ─── GROUP SIDEBAR ───────────────────────────────────────
+function buildGroupSidebar() {
   const groups = {};
-  all.forEach(j => { if (j.group_name || j.source_group) groups[j.source_group] = j.group_name || j.source_group; });
-  sel.innerHTML = '<option value="">Semua Group</option>';
-  Object.entries(groups).sort((a,b) => a[1].localeCompare(b[1])).forEach(([jid, name]) => {
-    const o = document.createElement('option');
-    o.value = jid; o.textContent = name;
-    if (jid === prev) o.selected = true;
-    sel.appendChild(o);
+  all.forEach(j => {
+    const gid = j.source_group || 'unknown';
+    if (!groups[gid]) groups[gid] = { name: j.group_name || gid, raw: 0, review: 0, valid: 0 };
+    const s = j.status || 'raw';
+    if (s in groups[gid]) groups[gid][s]++;
+  });
+
+  // sort: most pending first, then by name
+  const sorted = Object.entries(groups).sort(([,a],[,b]) => {
+    if (b.raw !== a.raw) return b.raw - a.raw;
+    return a.name.localeCompare(b.name);
+  });
+
+  const list = document.getElementById('grpList');
+  list.innerHTML = '';
+  sorted.forEach(([gid, g]) => {
+    const div = document.createElement('div');
+    div.className = 'grp-item' + (selectedGroup === gid ? ' active' : '');
+    div.onclick = () => selectGroup(gid);
+    div.innerHTML = `
+      <div class="grp-name" title="${esc(g.name)}">${esc(g.name)}</div>
+      <div class="grp-badges">
+        <span class="grp-badge gb-raw${g.raw > 0 ? ' has' : ''}">${g.raw} pending</span>
+        ${g.valid > 0 ? `<span class="grp-badge gb-val">${g.valid} valid</span>` : ''}
+      </div>`;
+    list.appendChild(div);
   });
 }
 
-// ─── RENDER ─────────────────────────────────────────────
+function selectGroup(gid) {
+  selectedGroup = gid;
+  buildGroupSidebar(); // re-render sidebar to update active state
+  render();
+}
+
+// ─── RENDER ──────────────────────────────────────────────
 function filters() {
   return {
-    group: document.getElementById('fGroup').value,
-    type:  document.getElementById('fType').value,
-    q:     document.getElementById('fSearch').value.toLowerCase(),
+    type: document.getElementById('fType').value,
+    q:    document.getElementById('fSearch').value.toLowerCase(),
   };
 }
 
 function matches(j, f) {
-  if (f.group && j.source_group !== f.group) return false;
-  if (f.type  && j.msg_type    !== f.type)  return false;
+  if (selectedGroup && j.source_group !== selectedGroup) return false;
+  if (f.type && j.msg_type !== f.type) return false;
   if (f.q) {
     const hay = [j.title,j.contact,j.group_name,j.company,j.location,j.raw_text,''].join(' ').toLowerCase();
     if (!hay.includes(f.q)) return false;
@@ -279,12 +337,28 @@ function matches(j, f) {
 }
 
 function render() {
+  if (!selectedGroup) {
+    // no group selected: show prompt, update global stats only
+    document.getElementById('cRaw').innerHTML = '<div class="empty-pick">← Pilih grup di kiri<br><span style="font-size:.75rem;color:#4c5166">untuk mulai review per grup</span></div>';
+    document.getElementById('cRev').innerHTML = '';
+    document.getElementById('cVal').innerHTML = '';
+    const tot = { raw:0, review:0, valid:0 };
+    all.forEach(j => { const s = j.status||'raw'; if (s in tot) tot[s]++; });
+    document.getElementById('sRaw').textContent = tot.raw;
+    document.getElementById('sRev').textContent = tot.review;
+    document.getElementById('sVal').textContent = tot.valid;
+    document.getElementById('hRaw').textContent = tot.raw;
+    document.getElementById('hRev').textContent = tot.review;
+    document.getElementById('hVal').textContent = tot.valid;
+    return;
+  }
+
   const f = filters();
   const cols = { raw:[], review:[], valid:[] };
   all.forEach(j => {
     if (!matches(j, f)) return;
     const s = j.status || 'raw';
-    (cols[s] || cols.raw).push(j);
+    if (s in cols) cols[s].push(j);
   });
 
   ['raw','review','valid'].forEach(s => {
@@ -294,12 +368,12 @@ function render() {
     cols[s].forEach(j => el.appendChild(mkCard(j)));
   });
 
-  const n = {raw: cols.raw.length, review: cols.review.length, valid: cols.valid.length};
-  ['Raw','Rev','Val'].forEach((k,i) => {
-    const cnt = [n.raw, n.review, n.valid][i];
-    document.getElementById('s'+k).textContent = cnt;
-    document.getElementById('h'+k).textContent = cnt;
-  });
+  document.getElementById('sRaw').textContent = cols.raw.length;
+  document.getElementById('sRev').textContent = cols.review.length;
+  document.getElementById('sVal').textContent = cols.valid.length;
+  document.getElementById('hRaw').textContent = cols.raw.length;
+  document.getElementById('hRev').textContent = cols.review.length;
+  document.getElementById('hVal').textContent = cols.valid.length;
 }
 
 // ─── CARD ───────────────────────────────────────────────
@@ -367,11 +441,14 @@ function row(k, v) {
 async function move(id, status) {
   const j = all.find(x => x.id === id);
   if (!j) return;
-  // send only status change, keep rest as-is
   const patch = jobToPatch(j);
   patch.status = status;
+  // validating always implies this is a confirmed job posting
+  if (status === 'valid') patch.is_job_posting = true;
   await api('PATCH', '/api/jobs/' + id, patch);
   j.status = status;
+  if (status === 'valid') j.is_job_posting = true;
+  buildGroupSidebar();
   render();
 }
 
@@ -379,6 +456,7 @@ async function del(id) {
   if (!confirm('Hapus job posting ini?')) return;
   await api('DELETE', '/api/jobs/' + id);
   all = all.filter(j => j.id !== id);
+  buildGroupSidebar();
   render();
 }
 
@@ -474,15 +552,17 @@ function esc(s) {
 }
 
 // ─── EVENTS ──────────────────────────────────────────────
-document.getElementById('fGroup').addEventListener('change', render);
 document.getElementById('fType').addEventListener('change', render);
 document.getElementById('fSearch').addEventListener('input', render);
 document.getElementById('overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('overlay')) closeModal();
 });
 
-// Auto-refresh every 30s for new incoming jobs
-setInterval(loadAll, 30000);
+// Auto-refresh every 30s — preserve selected group
+setInterval(() => {
+  const prev = selectedGroup;
+  loadAll().then(() => { if (prev) selectGroup(prev); });
+}, 30000);
 loadAll();
 </script>
 </body>

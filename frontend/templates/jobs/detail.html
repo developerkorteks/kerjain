@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load job_extras %}
+
+{% block title %}{{ job|smart_title }}{% if job.location %} di {{ job.location }}{% endif %} &ndash; Kerjain{% endblock %}
+{% block meta_description %}{% with preview=job|short_body %}{% if preview %}{{ preview }}{% else %}{{ job|smart_title }}{% endif %}{% endwith %} — Info loker dari komunitas loker Semarang, dikurasi di Kerjain.{% endblock %}
+{% block meta_keywords %}{{ job|smart_title }}, loker {{ job.location|default:"semarang" }}, lowongan kerja semarang, {{ job.group_name|default:"" }}{% endblock %}
+{% block canonical_path %}/loker/{{ job|job_slug }}/{{ job.id }}/{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_url_path %}/loker/{{ job|job_slug }}/{{ job.id }}/{% endblock %}
+{% block og_title %}{{ job|smart_title }}{% if job.company %} — {{ job.company }}{% endif %}{% endblock %}
+{% block og_description %}{% with preview=job|short_body %}{% if preview %}{{ preview }}{% else %}Info lowongan kerja dari komunitas loker Semarang{% endif %}{% endwith %}{% endblock %}
+{% block tw_title %}{{ job|smart_title }}{% if job.company %} — {{ job.company }}{% endif %}{% endblock %}
+{% block tw_description %}{% with preview=job|short_body %}{% if preview %}{{ preview }}{% else %}Info lowongan kerja dari komunitas loker Semarang{% endif %}{% endwith %}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "JobPosting",
+  "title": "{{ job|smart_title|escapejs }}",
+  "description": "{% if job.raw_text %}{{ job.raw_text|truncatechars:500|escapejs }}{% else %}{{ job|smart_title|escapejs }}{% endif %}",
+  "datePosted": "{{ job.posted_at|date:'Y-m-d' }}",
+  "validThrough": "{{ job.posted_at|date:'Y-m-d' }}",
+  "jobLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "{{ job.location|default:'Semarang'|escapejs }}",
+      "addressRegion": "Jawa Tengah",
+      "addressCountry": "ID"
+    }
+  },
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": "{{ job.company|default:'Tidak disebutkan'|escapejs }}"
+  },
+  "employmentType": "{% if job.msg_type == 'text' %}PART_TIME{% else %}OTHER{% endif %}",
+  "url": "{{ SITE_URL }}/loker/{{ job|job_slug }}/{{ job.id }}/",
+  "identifier": {
+    "@type": "PropertyValue",
+    "name": "Kerjain",
+    "value": "{{ job.id }}"
+  }{% if job.salary %},
+  "baseSalary": {
+    "@type": "MonetaryAmount",
+    "currency": "IDR",
+    "value": {
+      "@type": "QuantitativeValue",
+      "description": "{{ job.salary|escapejs }}"
+    }
+  }{% endif %}
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div style="padding-top:40px;padding-bottom:60px" class="fade-up">
+
+  <!-- Back -->
+  <a href="{% url 'job_list' %}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#64748b;text-decoration:none;margin-bottom:28px;font-weight:500;transition:color .15s" onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#64748b'">
+    <svg style="width:14px;height:14px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+    Kembali ke semua lowongan
+  </a>
+
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start" class="detail-grid">
+
+    <!-- MAIN -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+      <!-- Header -->
+      <div class="card" style="padding:28px;background:rgba(255,255,255,0.75)">
+        <div style="display:flex;align-items:flex-start;gap:18px">
+          <div style="width:56px;height:56px;border-radius:16px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#0f172a;flex-shrink:0">
+            {{ job|avatar_letter }}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+              {% for badge in job|detect_badges %}
+              <span class="chip" style="{{ badge.style }};border:1px solid transparent">{{ badge.label }}</span>
+              {% endfor %}
+              <span class="chip" style="{{ job.status|status_style }};border-width:1px">{{ job.status|status_label }}</span>
+              <span class="chip" style="{{ job.msg_type|type_style }};border-width:1px">{{ job.msg_type|type_label }}</span>
+            </div>
+            <h1 style="font-size:24px;font-weight:800;letter-spacing:-0.02em;color:#0f172a;line-height:1.2;margin-bottom:6px">{{ job|smart_title }}</h1>
+            {% if job.company %}<p style="font-size:15px;font-weight:600;color:#2563eb;margin-bottom:2px">{{ job.company }}</p>{% endif %}
+            <p style="font-size:13px;color:#94a3b8;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              {{ job.posted_at|relative_time }}
+              {% if job.posted_at|is_expired %}<span style="font-size:11px;font-weight:700;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:2px 8px">Mungkin expired — verifikasi sebelum melamar</span>{% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Meta grid -->
+        {% if job.location or job.salary or job.work_hours or job.education %}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:22px">
+          {% if job.location %}
+          <div style="background:#f8fafc;border-radius:14px;padding:14px">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Lokasi</div>
+            <div style="font-size:14px;font-weight:600;color:#0f172a">{{ job.location }}</div>
+          </div>
+          {% endif %}
+          {% if job.salary %}
+          <div style="background:#f0fdf4;border-radius:14px;padding:14px">
+            <div style="font-size:11px;color:#059669;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Gaji</div>
+            <div style="font-size:14px;font-weight:600;color:#0f172a">{{ job.salary }}</div>
+          </div>
+          {% endif %}
+          {% if job.work_hours %}
+          <div style="background:#fffbeb;border-radius:14px;padding:14px">
+            <div style="font-size:11px;color:#d97706;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Jam Kerja</div>
+            <div style="font-size:14px;font-weight:600;color:#0f172a">{{ job.work_hours }}</div>
+          </div>
+          {% endif %}
+          {% if job.education %}
+          <div style="background:#f5f3ff;border-radius:14px;padding:14px">
+            <div style="font-size:11px;color:#7c3aed;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Pendidikan</div>
+            <div style="font-size:14px;font-weight:600;color:#0f172a">{{ job.education }}</div>
+          </div>
+          {% endif %}
+          {% if job.gender and job.gender != "both" %}
+          <div style="background:#fdf2f8;border-radius:14px;padding:14px">
+            <div style="font-size:11px;color:#db2777;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Gender</div>
+            <div style="font-size:14px;font-weight:600;color:#0f172a">{% if job.gender == "male" %}Laki-laki{% else %}Perempuan{% endif %}</div>
+          </div>
+          {% endif %}
+          {% if job.age_min or job.age_max %}
+          <div style="background:#eff6ff;border-radius:14px;padding:14px">
+            <div style="font-size:11px;color:#2563eb;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Usia</div>
+            <div style="font-size:14px;font-weight:600;color:#0f172a">
+              {% if job.age_min and job.age_max %}{{ job.age_min }}&ndash;{{ job.age_max }} tahun
+              {% elif job.age_max %}Maks {{ job.age_max }} tahun
+              {% else %}Min {{ job.age_min }} tahun{% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Description -->
+      {% if job.raw_text %}
+      <div class="card" style="padding:28px;background:rgba(255,255,255,0.75)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <div style="width:3px;height:20px;border-radius:2px;background:#2563eb"></div>
+          <h2 style="font-size:16px;font-weight:700;color:#0f172a">Deskripsi Lengkap</h2>
+        </div>
+        <div style="font-size:14px;color:#475569;line-height:1.75;white-space:pre-wrap;font-weight:450">{{ job.raw_text }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Requirements -->
+      {% if job.requirements %}
+      <div class="card" style="padding:28px;background:rgba(255,255,255,0.75)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <div style="width:3px;height:20px;border-radius:2px;background:#7c3aed"></div>
+          <h2 style="font-size:16px;font-weight:700;color:#0f172a">Persyaratan</h2>
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+          {% for req in job.requirements %}
+          <li style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#475569">
+            <div style="width:20px;height:20px;border-radius:6px;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
+              <svg style="width:11px;height:11px;color:#7c3aed" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            {{ req }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Benefits -->
+      {% if job.benefits %}
+      <div class="card" style="padding:28px;background:rgba(255,255,255,0.75)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <div style="width:3px;height:20px;border-radius:2px;background:#059669"></div>
+          <h2 style="font-size:16px;font-weight:700;color:#0f172a">Benefit</h2>
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+          {% for b in job.benefits %}
+          <li style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#475569">
+            <div style="width:20px;height:20px;border-radius:6px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
+              <svg style="width:11px;height:11px;color:#059669" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            {{ b }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Image -->
+      {% if job.media_path %}
+      <div class="card" style="padding:24px;background:rgba(255,255,255,0.75)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="width:3px;height:20px;border-radius:2px;background:#d97706"></div>
+          <h2 style="font-size:16px;font-weight:700;color:#0f172a">Gambar Lowongan</h2>
+        </div>
+        <img src="{{ GO_API_URL }}/media/{{ job.media_path }}" alt="Gambar lowongan"
+             style="width:100%;border-radius:16px;max-height:600px;object-fit:contain;background:#f8fafc"
+             onerror="this.parentElement.style.display='none'"/>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="detail-sidebar" style="display:flex;flex-direction:column;gap:16px;position:sticky;top:90px">
+
+      <!-- Contact (with fallback extraction from raw_text) -->
+      {% with ct=job|extract_contact %}
+      <div class="card" style="padding:22px;background:rgba(255,255,255,0.8)">
+        <h3 style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:14px">Kontak</h3>
+
+        {% if ct %}
+          <p style="font-size:13px;color:#475569;font-weight:500;word-break:break-all;margin-bottom:14px">
+            {{ ct.label }}
+            {% if ct.source == "raw_text" %}
+            <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:4px">(dari teks)</span>
+            {% elif ct.source == "sender" %}
+            <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:4px">(nomor pengirim)</span>
+            {% endif %}
+          </p>
+          {% if ct.type == "wa" %}
+          <a href="{{ ct.wa_url }}" target="_blank" class="btn-dark"
+             style="width:100%;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg style="width:16px;height:16px;flex-shrink:0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Hubungi via WhatsApp
+          </a>
+          {% elif ct.type == "email" %}
+          <a href="{{ ct.url }}" class="btn-dark" style="width:100%">Kirim Email</a>
+          {% endif %}
+        {% else %}
+          <div style="text-align:center;padding:10px 0">
+            <p style="font-size:13px;color:#94a3b8;margin-bottom:8px">Tidak ada kontak tersedia</p>
+            {% if job.sender_name %}
+            <p style="font-size:12px;color:#cbd5e1">Diposting oleh <strong style="color:#475569">{{ job.sender_name }}</strong></p>
+            <p style="font-size:11px;color:#cbd5e1;margin-top:4px">Hubungi langsung di grup sumber</p>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+      {% endwith %}
+
+      <!-- Info -->
+      <div class="card" style="padding:22px;background:rgba(255,255,255,0.8)">
+        <h3 style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:14px">Informasi</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          {% if job.sender_name %}
+          <div style="display:flex;justify-content:space-between;font-size:13px">
+            <span style="color:#94a3b8;font-weight:500">Pengirim</span>
+            <span style="color:#0f172a;font-weight:600">{{ job.sender_name }}</span>
+          </div>
+          {% endif %}
+          <div style="font-size:13px;color:#94a3b8;padding-top:6px;border-top:1px solid #f1f5f9">
+            Sumber: {{ job.group_name|default:job.source_group|truncatechars:32 }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Share -->
+      <div class="card" style="padding:20px;background:rgba(255,255,255,0.8)">
+        <h3 style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:12px">Bagikan</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="https://wa.me/?text={{ job|smart_title|urlencode }}%20-%20{{ SITE_URL }}/loker/{{ job|job_slug }}/{{ job.id }}/" target="_blank"
+             style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-size:13px;font-weight:600;text-decoration:none;transition:opacity .15s"
+             onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+            <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Share via WhatsApp
+          </a>
+          <button onclick="copyLink()" id="copy-btn"
+             style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:13px;font-weight:600;cursor:pointer;width:100%;transition:background .15s"
+             onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+            <svg id="copy-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span id="copy-label">Salin Link</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Ad slot -->
+      <div style="border:1.5px dashed #e2e8f0;border-radius:18px;padding:28px;text-align:center">
+        <p style="font-size:10px;color:#cbd5e1;font-weight:600;letter-spacing:.08em;text-transform:uppercase">Ruang Iklan</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAFETY NOTE -->
+<div style="margin-top:40px;background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:14px 18px;display:flex;gap:10px;align-items:flex-start">
+  <svg width="16" height="16" fill="none" stroke="#d97706" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+  <span style="font-size:13px;color:#92400e;line-height:1.6"><strong>Sebelum melamar:</strong> Admin sudah filter dulu, tapi tetap cek mandiri ya — cek nomor via <strong>Get Contact</strong>, cek nama perusahaan di <strong>Google</strong>, cek lokasi di <strong>Maps</strong>, dan <strong>jangan mau kalau diminta bayar/transfer</strong>. Rekrutmen yang legit tidak pernah minta biaya.</span>
+</div>
+
+<style>
+  @media (max-width: 768px) {
+    .detail-grid { grid-template-columns: 1fr !important; }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function copyLink() {
+    const url = window.location.href;
+    const label = document.getElementById('copy-label');
+    const icon = document.getElementById('copy-icon');
+    navigator.clipboard.writeText(url).then(() => {
+      label.textContent = 'Link Disalin!';
+      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>';
+      setTimeout(() => {
+        label.textContent = 'Salin Link';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>';
+      }, 2200);
+    }).catch(() => {
+      prompt('Salin link ini:', url);
+    });
+  }
+</script>
+{% endblock %}

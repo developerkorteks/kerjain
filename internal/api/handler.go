@@ -146,12 +146,32 @@ func (h *Handler) refreshGroups(c *gin.Context) {
 func (h *Handler) listJobs(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+
+	// Default: only show is_job_posting=true (public).
+	// Pass ?is_job_posting=false → only non-job records.
+	// Pass ?is_job_posting=any  → all records, no filter (admin board).
+	var isJobPtr *bool
+	switch c.Query("is_job_posting") {
+	case "false":
+		b := false
+		isJobPtr = &b
+	case "any":
+		// nil → buildWhere skips the filter entirely
+	default:
+		b := true
+		isJobPtr = &b
+	}
+
 	f := storage.Filter{
-		Group:   c.Query("group"),
-		MsgType: c.Query("type"),
-		Status:  c.Query("status"),
-		Page:    page,
-		Limit:   limit,
+		Group:        c.Query("group"),
+		MsgType:      c.Query("type"),
+		Status:       c.Query("status"),
+		Search:       c.Query("q"),
+		Sort:         c.Query("sort"),
+		DateFrom:     c.Query("date_from"),
+		IsJobPosting: isJobPtr,
+		Page:         page,
+		Limit:        limit,
 	}
 	if h.store == nil {
 		c.JSON(http.StatusOK, storage.Page{})

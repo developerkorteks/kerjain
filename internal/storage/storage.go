@@ -24,6 +24,9 @@ type Filter struct {
 	Group        string
 	MsgType      string // "text" or "image"
 	Status       string // "raw", "review", "valid"
+	Search       string // free-text search against title, company, raw_text
+	Sort         string // "newest" (default) | "oldest"
+	DateFrom     string // ISO date string e.g. "2026-05-10" — filter posted_at >= this
 	IsJobPosting *bool
 	Page         int
 	Limit        int
@@ -172,9 +175,13 @@ func (s *Storage) List(f Filter) (*Page, error) {
 		return nil, err
 	}
 
+	order := "DESC"
+	if f.Sort == "oldest" {
+		order = "ASC"
+	}
 	queryArgs := append(args, f.Limit, offset)
 	rows, err := s.db.Query(
-		"SELECT "+jobColumns+" FROM job_postings"+where+" ORDER BY posted_at DESC LIMIT ? OFFSET ?",
+		"SELECT "+jobColumns+" FROM job_postings"+where+" ORDER BY posted_at "+order+" LIMIT ? OFFSET ?",
 		queryArgs...,
 	)
 	if err != nil {
@@ -287,6 +294,15 @@ func buildWhere(f Filter) (string, []interface{}) {
 	if f.IsJobPosting != nil {
 		conds = append(conds, "is_job_posting = ?")
 		args = append(args, boolToInt(*f.IsJobPosting))
+	}
+	if f.Search != "" {
+		like := "%" + f.Search + "%"
+		conds = append(conds, "(title LIKE ? OR company LIKE ? OR raw_text LIKE ? OR location LIKE ?)")
+		args = append(args, like, like, like, like)
+	}
+	if f.DateFrom != "" {
+		conds = append(conds, "posted_at >= ?")
+		args = append(args, f.DateFrom)
 	}
 
 	if len(conds) == 0 {

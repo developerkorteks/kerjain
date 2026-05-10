@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% load job_extras %}
+
+{% block title %}Kerjain — Info Loker Semarang, Update Tiap Hari{% endblock %}
+{% block meta_description %}Kerjain mengumpulkan info lowongan kerja dari berbagai komunitas loker di Semarang — dari casual, part-time, magang, hingga full-time. Cocok untuk mahasiswa dan pelajar. Gratis, update tiap hari.{% endblock %}
+{% block meta_keywords %}lowongan kerja semarang, loker harian semarang, casual worker, part time semarang, loker mahasiswa, daily worker semarang, info loker hari ini{% endblock %}
+{% block canonical_path %}/{% endblock %}
+{% block og_url_path %}/{% endblock %}
+{% block og_title %}Kerjain — Info Loker Semarang, Update Tiap Hari{% endblock %}
+{% block og_description %}Info lowongan kerja dari casual, part-time, magang hingga full-time — dikurasi dari komunitas loker Semarang. Difilter manual. Gratis.{% endblock %}
+{% block tw_title %}Kerjain — Info Loker Semarang{% endblock %}
+{% block tw_description %}Info lowongan kerja casual, part-time, magang & full-time dari komunitas loker Semarang. Gratis, difilter manual, update tiap hari.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Kerjain",
+  "url": "{{ SITE_URL }}",
+  "description": "Platform info lowongan kerja yang dikurasi dari berbagai komunitas loker di Semarang — casual, part-time, magang, dan full-time",
+  "inLanguage": "id-ID",
+  "publisher": {
+    "@type": "Organization",
+    "name": "GRNStore",
+    "url": "https://grnstore.my.id",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ SITE_URL }}/static/img/logo.png"
+    }
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "{{ SITE_URL }}/loker/?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+/* ─── home-only styles ─────────────────────────────────────── */
+.h-hero { padding: 52px 0 40px; }
+.h-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #dcfce7; color: #15803d;
+  border-radius: 999px; padding: 4px 12px;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  margin-bottom: 18px;
+}
+.h-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; }
+.h-h1 {
+  font-size: clamp(28px, 5vw, 48px); font-weight: 800;
+  letter-spacing: -.03em; line-height: 1.15; color: #0f172a;
+  margin-bottom: 14px;
+}
+.h-sub { font-size: 15px; color: #475569; line-height: 1.65; margin-bottom: 28px; max-width: 420px; }
+.h-search {
+  display: flex; gap: 0; margin-bottom: 20px; max-width: 440px;
+  border: 1.5px solid #e2e8f0; border-radius: 12px; background: #fff;
+  overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.06);
+}
+.h-search input {
+  flex: 1; padding: 12px 16px; font-size: 14px; border: none; outline: none;
+  font-family: inherit; color: #0f172a; background: transparent;
+}
+.h-search button {
+  padding: 0 18px; background: #16a34a; color: #fff; border: none;
+  font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: background .15s;
+}
+.h-search button:hover { background: #15803d; }
+.h-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-green {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #0f172a; color: #fff;
+  padding: 11px 22px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  transition: background .15s;
+}
+.btn-green:hover { background: #1e293b; }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #fff; color: #374151;
+  border: 1.5px solid #e5e7eb;
+  padding: 11px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; text-decoration: none;
+  transition: border-color .15s, background .15s;
+}
+.btn-outline:hover { border-color: #cbd5e1; background: #f8fafc; }
+
+/* hero layout */
+.h-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+
+/* job preview cards */
+.preview-stack { display: flex; flex-direction: column; gap: 10px; }
+.preview-card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+  padding: 16px 18px; box-shadow: 0 1px 6px rgba(0,0,0,.04);
+  transition: box-shadow .15s, transform .15s; text-decoration: none;
+  display: block; color: inherit;
+}
+.preview-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-1px); }
+.preview-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+.preview-company { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+.preview-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.preview-tag {
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 6px; background: #f1f5f9; color: #475569;
+}
+.preview-tag-green { background: #dcfce7; color: #15803d; }
+.preview-time { font-size: 11px; color: #94a3b8; margin-top: 8px; }
+
+/* categories */
+.cat-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.cat-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 16px; border-radius: 999px;
+  border: 1.5px solid #e5e7eb; background: #fff;
+  font-size: 12px; font-weight: 600; color: #374151;
+  text-decoration: none; transition: all .15s; white-space: nowrap;
+}
+.cat-pill:hover { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+
+/* divider */
+.h-divider { border: none; border-top: 1px solid #f1f5f9; margin: 40px 0; }
+
+/* promo strip */
+.promo-strip {
+  background: #0f172a; color: #fff; border-radius: 16px;
+  padding: 28px 32px; display: flex; align-items: center;
+  justify-content: space-between; gap: 20px; flex-wrap: wrap;
+}
+.promo-strip-text h3 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.promo-strip-text p { font-size: 13px; color: #94a3b8; }
+.btn-wa-small {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #16a34a; color: #fff;
+  padding: 11px 22px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  white-space: nowrap; transition: background .15s;
+}
+.btn-wa-small:hover { background: #15803d; }
+
+/* safety note */
+.safety-note {
+  background: #fffbeb; border: 1px solid #fde68a;
+  border-radius: 12px; padding: 14px 18px;
+  font-size: 12px; color: #78350f; line-height: 1.65;
+}
+.safety-note strong { color: #92400e; }
+
+@media (max-width: 767px) {
+  .h-grid { grid-template-columns: 1fr; gap: 32px; }
+  .h-h1 { font-size: 28px; }
+  .promo-strip { flex-direction: column; align-items: flex-start; }
+}
+{% endblock %}
+
+{% block content %}
+<div style="padding-bottom:60px">
+
+<!-- ── HERO ─────────────────────────────────────────────────────────── -->
+<section class="h-hero">
+  <div class="h-grid">
+
+    <!-- kiri: copy + search -->
+    <div>
+      <div class="h-badge">
+        <span class="h-badge-dot"></span>
+        Update tiap hari &nbsp;·&nbsp; Gratis
+      </div>
+      <h1 class="h-h1">
+        Temukan loker<br>yang pas buatmu,<br>dikurasi tiap hari.
+      </h1>
+      <p class="h-sub">
+        Untuk mahasiswa, fresh graduate, dan anak SMK.<br>
+        Tanpa daftar. Langsung lihat.
+      </p>
+      <form class="h-search" action="{% url 'job_list' %}" method="get">
+        <input type="text" name="q" placeholder="Cari posisi atau perusahaan…" autocomplete="off">
+        <button type="submit">Cari</button>
+      </form>
+      <div class="h-ctas">
+        <a href="{% url 'job_list' %}" class="btn-green">
+          Lihat Semua Loker
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+        <a href="{% url 'job_list' %}?date=today" class="btn-outline">Loker Hari Ini{% if today_jobs %} <span style="background:#dcfce7;color:#15803d;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700">{{ today_jobs }}</span>{% endif %}</a>
+      </div>
+    </div>
+
+    <!-- kanan: preview loker real -->
+    <div>
+      {% if recent_jobs %}
+      <div class="preview-stack">
+        {% for job in recent_jobs|slice:":4" %}
+        <a href="{% url 'job_detail' job_slug=job|job_slug job_id=job.id %}" class="preview-card">
+          <p class="preview-title">{{ job|smart_title }}</p>
+          <p class="preview-company">
+            {% if job.company %}{{ job.company }}{% else %}—{% endif %}
+            {% if job.location %}&nbsp;·&nbsp; {{ job.location }}{% endif %}
+          </p>
+          <div class="preview-tags">
+            {% if job.location %}<span class="preview-tag">{{ job.location }}</span>{% endif %}
+            {% if job.education %}<span class="preview-tag">{{ job.education|upper }}</span>{% endif %}
+          </div>
+          <p class="preview-time">{{ job.posted_at|relative_time }}</p>
+        </a>
+        {% endfor %}
+        <a href="{% url 'job_list' %}" style="font-size:13px;color:#16a34a;font-weight:600;text-decoration:none;padding:4px 0;display:inline-flex;align-items:center;gap:4px">
+          Lihat {{ total_jobs }} lowongan lainnya →
+        </a>
+      </div>
+      {% else %}
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:32px;text-align:center">
+        <p style="font-size:13px;color:#94a3b8">Belum ada loker tersedia.</p>
+        <a href="{% url 'job_list' %}" style="font-size:13px;color:#16a34a;font-weight:600;text-decoration:none">Cek semua lowongan →</a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+<hr class="h-divider">
+
+<!-- ── KATEGORI CEPAT ────────────────────────────────────────────────── -->
+<section style="margin-bottom:40px">
+  <p style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">Cari berdasarkan kategori</p>
+  <div class="cat-row">
+    <a href="{% url 'job_list' %}?q=full+time" class="cat-pill">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Full Time
+    </a>
+    <a href="{% url 'job_list' %}?q=part+time" class="cat-pill">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Part Time
+    </a>
+    <a href="{% url 'job_list' %}?q=magang" class="cat-pill">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+      Magang
+    </a>
+    <a href="{% url 'job_list' %}?q=remote" class="cat-pill">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Remote
+    </a>
+    <a href="{% url 'job_list' %}?q=fresh+graduate" class="cat-pill">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+      Fresh Graduate
+    </a>
+    <a href="{% url 'job_list' %}?q=smk" class="cat-pill">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      SMA / SMK
+    </a>
+    <a href="{% url 'job_list' %}?q=semarang" class="cat-pill">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Semarang
+    </a>
+  </div>
+</section>
+
+<hr class="h-divider">
+
+<!-- ── TIPS SINGKAT ──────────────────────────────────────────────────── -->
+<section style="margin-bottom:40px">
+  <div class="safety-note" style="display:flex;gap:12px;align-items:flex-start">
+    <svg width="16" height="16" fill="none" stroke="#d97706" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <span><strong>Sebelum melamar:</strong>
+    Admin sudah filter dulu, tapi tetap cek mandiri ya —
+    cek nomor via <strong>Get Contact</strong>,
+    cek nama perusahaan di <strong>Google</strong>,
+    cek lokasi di <strong>Maps</strong>,
+    dan <strong>jangan mau kalau diminta bayar/transfer</strong>.
+    Rekrutmen yang legit tidak pernah minta biaya.</span>
+  </div>
+</section>
+
+<!-- ── PROMO STRIP ───────────────────────────────────────────────────── -->
+<section style="margin-bottom:0">
+  <div class="promo-strip">
+    <div class="promo-strip-text">
+      <h3>Punya info loker? Share ke sini.</h3>
+      <p>Kita bisa bantu distribusiin ke komunitas yang tepat. Gratis.</p>
+    </div>
+    <a href="https://wa.me/6285117557905?text=Halo%20Kerjain%2C%20saya%20ingin%20share%20info%20loker" target="_blank" rel="noopener" class="btn-wa-small">
+      <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Chat WhatsApp
+    </a>
+  </div>
+</section>
+
+</div>
+{% endblock %}
