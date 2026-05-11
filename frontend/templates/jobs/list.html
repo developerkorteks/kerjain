@@ -217,7 +217,7 @@
       <!-- Thumbnail for image jobs -->
       {% if job.media_path %}
       <div style="margin-bottom:14px;border-radius:12px;overflow:hidden;max-height:140px">
-        <img src="{{ GO_API_URL }}/media/{{ job.media_path }}"
+        <img src="/media/{{ job.media_path }}"
              alt="Gambar lowongan"
              style="width:100%;height:140px;object-fit:cover;background:#f8fafc"
              onerror="this.parentElement.style.display='none'"/>

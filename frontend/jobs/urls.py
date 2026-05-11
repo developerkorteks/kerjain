@@ -8,4 +8,5 @@ urlpatterns = [
     path("loker/<slug:job_slug>/<str:job_id>/", views.job_detail, name="job_detail"),
     path("jobs/<str:job_id>/", views.job_detail_legacy, name="job_detail_legacy"),
     path("tentang/", views.about, name="about"),
+    path("media/<path:path>", views.media_proxy, name="media_proxy"),
 ]

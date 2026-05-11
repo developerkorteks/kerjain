@@ -3,9 +3,19 @@ from datetime import date, timedelta
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+import requests as _req
 
 from . import services
 from .services import APIError
+
+
+def media_proxy(request, path):
+    try:
+        r = _req.get(f"{settings.GO_API_URL}/media/{path}", timeout=5, stream=True)
+        content_type = r.headers.get("Content-Type", "image/jpeg")
+        return HttpResponse(r.content, content_type=content_type)
+    except Exception:
+        return HttpResponse(status=404)
 
 
 def _api_error(request, message):
