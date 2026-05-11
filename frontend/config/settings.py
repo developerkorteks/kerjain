@@ -50,8 +50,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-GO_API_URL = os.getenv("GO_API_URL", "http://localhost:8080")
-SITE_URL = os.getenv("SITE_URL", "http://localhost:8000")
+GO_API_URL = os.getenv("GO_API_URL", "http://localhost:60880")
+SITE_URL = os.getenv("SITE_URL", "http://localhost:60800")
 UMAMI_URL = os.getenv("UMAMI_URL", "")
 UMAMI_WEBSITE_ID = os.getenv("UMAMI_WEBSITE_ID", "")
 

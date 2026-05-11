@@ -138,6 +138,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <span class="stat"><span class="dot d-rev"></span><span id="sRev">0</span> edit</span>
     <span class="stat"><span class="dot d-val"></span><span id="sVal">0</span> valid</span>
     <button class="btn b-back" style="padding:3px 9px;margin-left:4px" onclick="loadAll()">↺</button>
+    <button class="btn" style="padding:3px 10px;margin-left:4px;background:#312e81;border:1px solid #4338ca;color:#a5b4fc" onclick="openIG()">📸 IG</button>
   </div>
 </div>
 
@@ -168,6 +169,70 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     </div>
   </div>
 
+</div>
+
+<!-- IG Management Modal -->
+<div class="overlay hide" id="igOverlay" style="z-index:200">
+  <div class="modal" style="max-width:560px;width:95%">
+    <h2 style="color:#a78bfa;margin-bottom:14px">📸 Instagram Scraper</h2>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="btn" id="igTabLogin" onclick="igTab('login')" style="background:#312e81;border:1px solid #4338ca;color:#a5b4fc">Login Akun Bot</button>
+      <button class="btn" id="igTabTargets" onclick="igTab('targets')" style="background:var(--card);border:1px solid var(--border)">Target Akun</button>
+      <button class="btn" id="igTabSettings" onclick="igTab('settings')" style="background:var(--card);border:1px solid var(--border)">Pengaturan</button>
+    </div>
+
+    <!-- TAB: LOGIN -->
+    <div id="igPaneLogin">
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Paste cookies JSON dari browser (export via <b>Cookie-Editor</b> atau <b>EditThisCookie</b>). Pastikan sudah login di instagram.com.</p>
+      <textarea id="igCookies" rows="9" placeholder='[{"name":"sessionid","value":"..."}]'
+        style="width:100%;background:#111318;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px;font-size:.73rem;font-family:monospace;resize:vertical"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+        <button class="btn b-val" onclick="igLogin()" style="flex:1">Login →</button>
+        <button class="btn b-back" onclick="closeIG()">Batal</button>
+      </div>
+      <div id="igLoginMsg" style="margin-top:8px;font-size:.78rem;display:none"></div>
+    </div>
+
+    <!-- TAB: TARGETS -->
+    <div id="igPaneTargets" class="hide">
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Akun IG yang di-monitor. Perubahan aktif di polling berikutnya tanpa restart.</p>
+      <div id="igTargetList" style="margin-bottom:10px"></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <input id="igNewUser" type="text" placeholder="username (tanpa @)" style="flex:1;background:#111318;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:5px 8px;font-size:.78rem">
+        <input id="igNewPosts" type="number" value="20" min="1" max="50" style="width:60px;background:#111318;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:5px 8px;font-size:.78rem">
+        <button class="btn b-val" onclick="igAddTarget()">+ Tambah</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn b-val" onclick="igSaveConfig()" style="flex:1">Simpan</button>
+        <button class="btn b-back" onclick="closeIG()">Tutup</button>
+      </div>
+      <div id="igTargetsMsg" style="margin-top:8px;font-size:.78rem;display:none"></div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <div id="igPaneSettings" class="hide">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <p style="font-size:.78rem;color:var(--muted)">Status bot accounts</p>
+        <div style="display:flex;gap:5px">
+          <button class="btn" onclick="igRefreshStatus(false)" style="padding:2px 8px;font-size:.72rem;background:var(--card);border:1px solid var(--border)">⚡ Cek Cepat</button>
+          <button class="btn b-val" onclick="igRefreshStatus(true)" style="padding:2px 8px;font-size:.72rem" title="Validasi langsung ke Instagram (lambat ~5s/akun)">🔍 Cek Live</button>
+        </div>
+      </div>
+      <div id="igBotList" style="font-size:.75rem;margin-bottom:12px">Memuat...</div>
+      <label style="font-size:.78rem;display:block;margin-bottom:10px">Interval Polling
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <input id="igInterval" type="number" min="300" max="86400" value="3600"
+            style="flex:1;background:#111318;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:5px 8px;font-size:.78rem">
+          <span style="font-size:.72rem;color:var(--muted);white-space:nowrap" id="igIntervalLabel">60 menit</span>
+        </div>
+      </label>
+      <div style="display:flex;gap:8px">
+        <button class="btn b-val" onclick="igSaveConfig()" style="flex:1">Simpan</button>
+        <button class="btn b-back" onclick="closeIG()">Tutup</button>
+      </div>
+      <div id="igSettingsMsg" style="margin-top:8px;font-size:.78rem;display:none"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Edit Modal -->
@@ -564,6 +629,214 @@ setInterval(() => {
   loadAll().then(() => { if (prev) selectGroup(prev); });
 }, 30000);
 loadAll();
+
+// ─── IG MANAGEMENT ───────────────────────────────────────
+const IG_API_KEY = localStorage.getItem('ig_api_key') || '';
+let igCfg = null;
+
+function igApiKey() {
+  let k = localStorage.getItem('ig_api_key') || '';
+  if (!k) {
+    k = prompt('Masukkan INGEST_API_KEY (dari .env Go):') || '';
+    if (k) localStorage.setItem('ig_api_key', k);
+  }
+  return k;
+}
+
+async function openIG() {
+  document.getElementById('igOverlay').classList.remove('hide');
+  igTab('login');
+  await igLoadConfig();
+}
+
+function closeIG() {
+  document.getElementById('igOverlay').classList.add('hide');
+}
+
+function igTab(tab) {
+  ['login','targets','settings'].forEach(t => {
+    document.getElementById('igPane' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('hide', t !== tab);
+    const btn = document.getElementById('igTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    btn.style.background = t === tab ? '#312e81' : 'var(--card)';
+    btn.style.color      = t === tab ? '#a5b4fc' : 'var(--text)';
+    btn.style.border     = t === tab ? '1px solid #4338ca' : '1px solid var(--border)';
+  });
+}
+
+function igMsg(id, msg, ok) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.color = ok ? '#10b981' : '#f87171';
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+async function igLogin() {
+  const raw = document.getElementById('igCookies').value.trim();
+  if (!raw) { igMsg('igLoginMsg', 'Paste cookies JSON dulu', false); return; }
+
+  let cookies;
+  try { cookies = JSON.parse(raw); } catch(e) { igMsg('igLoginMsg', 'JSON tidak valid: ' + e.message, false); return; }
+
+  const key = igApiKey();
+  if (!key) return;
+
+  igMsg('igLoginMsg', 'Login ke Instagram...', true);
+  try {
+    const r = await fetch('/api/ig/add-session?api_key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cookies),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      document.getElementById('igCookies').value = '';
+      await igLoadConfig();
+      // Switch to Settings tab so user sees the validation status immediately
+      igTab('settings');
+      igRefreshStatus(false);
+      igMsg('igLoginMsg', `✓ Login berhasil sebagai @${d.username}${d.added_to_config ? ' · ditambahkan ke config' : ' · session diperbarui'}`, true);
+    } else {
+      igMsg('igLoginMsg', '✗ ' + (d.error || JSON.stringify(d)), false);
+    }
+  } catch(e) {
+    igMsg('igLoginMsg', '✗ Request error: ' + e.message, false);
+  }
+}
+
+async function igLoadConfig() {
+  const key = localStorage.getItem('ig_api_key') || '';
+  if (!key) return;
+  try {
+    const r = await fetch('/api/ig/config?api_key=' + encodeURIComponent(key));
+    if (!r.ok) return;
+    igCfg = await r.json();
+    renderTargets();
+    renderBots(null);
+    const iv = igCfg.poll_interval || 3600;
+    document.getElementById('igInterval').value = iv;
+    updateIntervalLabel(iv);
+    igRefreshStatus(false);
+  } catch(e) {}
+}
+
+function updateIntervalLabel(v) {
+  const mins = Math.round(v / 60);
+  document.getElementById('igIntervalLabel').textContent = mins >= 60 ? `${(mins/60).toFixed(1)} jam` : `${mins} menit`;
+}
+document.getElementById('igInterval').addEventListener('input', e => updateIntervalLabel(+e.target.value));
+
+function renderTargets() {
+  const list = document.getElementById('igTargetList');
+  if (!igCfg || !igCfg.targets || !igCfg.targets.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:.75rem">Belum ada target.</div>';
+    return;
+  }
+  list.innerHTML = igCfg.targets.map((t, i) => `
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#111318;border-radius:5px;margin-bottom:4px">
+      <input type="checkbox" ${t.enabled !== false ? 'checked' : ''} onchange="igToggleTarget(${i}, this.checked)" style="accent-color:#6366f1">
+      <span style="flex:1;font-size:.78rem;color:${t.enabled !== false ? 'var(--text)' : 'var(--muted)'}">@${esc(t.username)}</span>
+      <input type="number" value="${t.posts || 20}" min="1" max="50"
+        onchange="igCfg.targets[${i}].posts = +this.value"
+        style="width:52px;background:#1a1d27;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;font-size:.72rem">
+      <span style="font-size:.68rem;color:var(--muted)">post</span>
+      <button onclick="igRemoveTarget(${i})" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:.9rem">✕</button>
+    </div>`).join('');
+}
+
+function renderBots(statuses) {
+  const el = document.getElementById('igBotList');
+  if (!igCfg || !igCfg.scraper_accounts || !igCfg.scraper_accounts.length) {
+    el.innerHTML = '<div style="color:var(--muted)">Belum ada bot account. Login dulu di tab <b>Login Akun Bot</b>.</div>';
+    return;
+  }
+  const map = {};
+  if (statuses) statuses.forEach(s => { map[s.username] = s; });
+  el.innerHTML = igCfg.scraper_accounts.map(a => {
+    const s = map[a.username];
+    const statusColors = { ok:'#10b981', expired:'#f59e0b', missing:'#f87171', error:'#f87171' };
+    const statusIcons  = { ok:'🟢', expired:'🟡', missing:'🔴', error:'🔴' };
+    const statusText   = { ok:'Aktif', expired:'Expired', missing:'Tidak Ada', error:'Error' };
+    const st  = s ? s.status : (a.enabled !== false ? 'unknown' : 'disabled');
+    const icon = s ? (statusIcons[st] || '⚪') : (a.enabled !== false ? '⚪' : '⚫');
+    const color = s ? (statusColors[st] || 'var(--muted)') : 'var(--muted)';
+    const label = s ? (statusText[st] || st) : (a.enabled !== false ? 'Belum dicek' : 'Disabled');
+    const msg   = s ? s.message : '';
+    return `<div style="display:flex;flex-direction:column;padding:7px 10px;background:#111318;border-radius:6px;margin-bottom:5px;border-left:3px solid ${color}">
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="font-size:1rem">${icon}</span>
+        <span style="flex:1;font-weight:600">@${esc(a.username)}</span>
+        <span style="font-size:.7rem;padding:1px 7px;border-radius:10px;background:${color}22;color:${color};border:1px solid ${color}44">${label}</span>
+        ${s && s.file_age_days !== null ? `<span style="font-size:.68rem;color:var(--muted)">${s.file_age_days}d</span>` : ''}
+      </div>
+      ${msg ? `<div style="font-size:.7rem;color:var(--muted);margin-top:3px;padding-left:27px">${esc(msg)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function igRefreshStatus(live) {
+  const key = localStorage.getItem('ig_api_key') || '';
+  if (!key) return;
+  const el = document.getElementById('igBotList');
+  el.innerHTML = `<div style="color:var(--muted);font-size:.75rem">${live ? '🔍 Validasi ke Instagram...' : '⚡ Mengecek...'}</div>`;
+  try {
+    const url = `/api/ig/status?api_key=${encodeURIComponent(key)}${live ? '&live=1' : ''}`;
+    const r = await fetch(url);
+    if (!r.ok) { el.innerHTML = '<div style="color:#f87171">Gagal cek status</div>'; return; }
+    const statuses = await r.json();
+    renderBots(statuses);
+  } catch(e) {
+    el.innerHTML = `<div style="color:#f87171">${e.message}</div>`;
+  }
+}
+
+function igToggleTarget(i, enabled) {
+  if (igCfg && igCfg.targets[i]) igCfg.targets[i].enabled = enabled;
+  renderTargets();
+}
+
+function igRemoveTarget(i) {
+  if (!igCfg) return;
+  igCfg.targets.splice(i, 1);
+  renderTargets();
+}
+
+function igAddTarget() {
+  const u = document.getElementById('igNewUser').value.replace('@','').trim();
+  const p = parseInt(document.getElementById('igNewPosts').value) || 20;
+  if (!u) return;
+  if (!igCfg) igCfg = { poll_interval: 3600, scraper_accounts: [], targets: [] };
+  if (igCfg.targets.find(t => t.username === u)) {
+    igMsg('igTargetsMsg', `@${u} sudah ada`, false); return;
+  }
+  igCfg.targets.push({ username: u, posts: p, enabled: true });
+  document.getElementById('igNewUser').value = '';
+  renderTargets();
+}
+
+async function igSaveConfig() {
+  const key = igApiKey();
+  if (!key || !igCfg) return;
+
+  igCfg.poll_interval = parseInt(document.getElementById('igInterval').value) || 3600;
+
+  try {
+    const r = await fetch('/api/ig/config?api_key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(igCfg, null, 2),
+    });
+    const d = await r.json();
+    const msgId = document.getElementById('igPaneTargets').classList.contains('hide') ? 'igSettingsMsg' : 'igTargetsMsg';
+    igMsg(msgId, d.ok ? '✓ Config tersimpan' : ('✗ ' + d.error), d.ok);
+  } catch(e) {
+    igMsg('igTargetsMsg', '✗ ' + e.message, false);
+  }
+}
+
+document.getElementById('igOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('igOverlay')) closeIG();
+});
 </script>
 </body>
 </html>

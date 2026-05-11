@@ -15,11 +15,11 @@ def _get(path, **params):
         r.raise_for_status()
         return r.json()
     except requests.exceptions.ConnectionError:
-        raise APIError("Go backend tidak dapat dihubungi. Pastikan server berjalan di port 8080.")
+        raise APIError("Layanan sedang tidak tersedia. Silakan coba lagi nanti.")
     except requests.exceptions.Timeout:
-        raise APIError("Server timeout. Coba lagi dalam beberapa saat.")
-    except Exception as e:
-        raise APIError(str(e))
+        raise APIError("Layanan lambat merespons. Silakan coba lagi dalam beberapa saat.")
+    except Exception:
+        raise APIError("Terjadi kesalahan. Silakan coba lagi nanti.")
 
 
 def get_jobs(page=1, limit=12, status=None, msg_type=None, group=None, search=None, sort=None, date_from=None):

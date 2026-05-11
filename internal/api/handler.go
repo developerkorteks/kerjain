@@ -2,8 +2,18 @@ package api
 
 import (
 	"context"
+	"bytes"
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"io"
+	"math"
 	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -12,6 +22,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/skip2/go-qrcode"
 
+	"lokerwa/internal/extractor"
 	"lokerwa/internal/hub"
 	"lokerwa/internal/storage"
 	"lokerwa/internal/whatsapp"
@@ -22,12 +33,13 @@ var upgrader = websocket.Upgrader{
 }
 
 type Handler struct {
-	manager   *whatsapp.Manager
-	hub       *hub.Hub
-	store     *storage.Storage
-	mu        sync.RWMutex
-	lastQR    string
-	lastQRPNG []byte
+	manager    *whatsapp.Manager
+	hub        *hub.Hub
+	store      *storage.Storage
+	mu         sync.RWMutex
+	lastQR     string
+	lastQRPNG  []byte
+	ingestKey  string
 }
 
 func New(manager *whatsapp.Manager, h *hub.Hub, store *storage.Storage) *Handler {
@@ -65,6 +77,16 @@ func New(manager *whatsapp.Manager, h *hub.Hub, store *storage.Storage) *Handler
 		h.Broadcast("groups", groups)
 	}
 
+	// Ingest API key: read from env or generate random on startup
+	key := os.Getenv("INGEST_API_KEY")
+	if key == "" {
+		b := make([]byte, 16)
+		_, _ = rand.Read(b)
+		key = hex.EncodeToString(b)
+		fmt.Printf("[ingest] No INGEST_API_KEY set — generated ephemeral key: %s\n", key)
+	}
+	handler.ingestKey = key
+
 	return handler
 }
 
@@ -82,6 +104,11 @@ func (h *Handler) Register(r *gin.Engine, mediaDir string) {
 	api.PATCH("/jobs/:id", h.patchJob)
 	api.DELETE("/jobs/:id", h.deleteJob)
 	api.POST("/groups/:jid/fetch-history", h.fetchHistory)
+	api.POST("/ingest", h.ingestHandler)
+	api.POST("/ig/add-session", h.igAddSession)
+	api.GET("/ig/config", h.igGetConfig)
+	api.POST("/ig/config", h.igSaveConfig)
+	api.GET("/ig/status", h.igStatus)
 
 	r.Static("/media", mediaDir)
 	r.GET("/ws", h.wsHandler)
@@ -323,4 +350,301 @@ func (h *Handler) wsHandler(c *gin.Context) {
 			break
 		}
 	}
+}
+
+// ── ingest endpoint ──────────────────────────────────────────────────────────
+
+type ingestRequest struct {
+	Text      string `json:"text"`        // raw post caption / body
+	Source    string `json:"source"`      // e.g. "instagram"
+	Account   string `json:"account"`     // e.g. "@lokersmg"
+	PostedAt  string `json:"posted_at"`   // RFC3339, optional
+	MsgID     string `json:"msg_id"`      // unique ID from source
+	MediaPath string `json:"media_path"`  // filename inside mediaDir, optional
+	MediaMIME string `json:"media_mime"`  // e.g. "image/jpeg"
+	APIKey    string `json:"api_key"`
+}
+
+func (h *Handler) ingestHandler(c *gin.Context) {
+	var req ingestRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.APIKey != h.ingestKey {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid api_key"})
+		return
+	}
+
+	if req.Text == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "text required"})
+		return
+	}
+
+	postedAt := time.Now().UTC()
+	if req.PostedAt != "" {
+		if t, err := time.Parse(time.RFC3339, req.PostedAt); err == nil {
+			postedAt = t
+		}
+	}
+
+	msgID := req.MsgID
+	if msgID == "" {
+		b := make([]byte, 8)
+		_, _ = rand.Read(b)
+		msgID = req.Source + "_" + hex.EncodeToString(b)
+	}
+
+	ext := extractor.Extract(req.Text)
+	ext.ID = msgID
+	ext.SourceGroup = req.Source + ":" + req.Account
+	ext.GroupName = req.Account
+	ext.SenderJID = req.Account
+	ext.SenderName = req.Account
+	if req.MediaPath != "" {
+		ext.MsgType = "image"
+		ext.MediaPath = req.MediaPath
+		ext.MediaMIME = req.MediaMIME
+		ext.IsJobPosting = true
+	} else {
+		ext.MsgType = "text"
+	}
+	ext.RawText = req.Text
+	ext.PostedAt = postedAt.Format(time.RFC3339)
+
+	if err := h.store.Save(ext); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"ok":           true,
+		"id":           ext.ID,
+		"is_job":       ext.IsJobPosting,
+		"title":        ext.Title,
+	})
+}
+
+// ── IG management endpoints ───────────────────────────────────────────────────
+
+var (
+	_igDirOnce sync.Once
+	_igDir     string
+)
+
+func getIgDir() string {
+	_igDirOnce.Do(func() {
+		// 0. Explicit override via env (best for production/Docker)
+		if env := os.Getenv("IG_SCRAPER_DIR"); env != "" {
+			_igDir = env
+			return
+		}
+		// 1. Try next to the running binary
+		if ex, err := os.Executable(); err == nil {
+			p := filepath.Join(filepath.Dir(filepath.Clean(ex)), "ig_scraper")
+			if _, err := os.Stat(p); err == nil {
+				_igDir = p
+				return
+			}
+		}
+		// 2. Fallback: absolute from CWD
+		if abs, err := filepath.Abs("ig_scraper"); err == nil {
+			_igDir = abs
+			return
+		}
+		_igDir = "ig_scraper"
+	})
+	return _igDir
+}
+
+func igPythonPath() string {
+	dir := getIgDir()
+	for _, name := range []string{"python", "python3"} {
+		p := filepath.Join(dir, "venv", "bin", name)
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return "python3"
+}
+
+// POST /api/ig/add-session — accepts cookies JSON array, calls add_session.py --batch
+func (h *Handler) igAddSession(c *gin.Context) {
+	apiKey := c.GetHeader("X-API-Key")
+	if apiKey == "" {
+		apiKey = c.Query("api_key")
+	}
+	if apiKey != h.ingestKey {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid api_key"})
+		return
+	}
+
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil || len(body) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "empty body"})
+		return
+	}
+
+	igDir := getIgDir()
+	script := filepath.Join(igDir, "add_session.py")
+	cmd := exec.CommandContext(c.Request.Context(), igPythonPath(), script, "--batch")
+	cmd.Stdin = bytes.NewReader(body)
+	cmd.Dir = igDir
+
+	out, err := cmd.Output()
+	if err != nil {
+		// Try to parse stderr for error message
+		var exitErr *exec.ExitError
+		if ok := (err.Error() != ""); ok {
+			if ee, ok2 := err.(*exec.ExitError); ok2 {
+				exitErr = ee
+				_ = exitErr
+			}
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "detail": string(out)})
+		return
+	}
+
+	// Forward Python JSON response
+	c.Data(http.StatusOK, "application/json", bytes.TrimSpace(out))
+}
+
+// GET /api/ig/config
+func (h *Handler) igGetConfig(c *gin.Context) {
+	apiKey := c.GetHeader("X-API-Key")
+	if apiKey == "" {
+		apiKey = c.Query("api_key")
+	}
+	if apiKey != h.ingestKey {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid api_key"})
+		return
+	}
+
+	data, err := os.ReadFile(filepath.Join(getIgDir(), "config.json"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "config.json not found"})
+		return
+	}
+	c.Data(http.StatusOK, "application/json", data)
+}
+
+// POST /api/ig/config
+func (h *Handler) igSaveConfig(c *gin.Context) {
+	apiKey := c.GetHeader("X-API-Key")
+	if apiKey == "" {
+		apiKey = c.Query("api_key")
+	}
+	if apiKey != h.ingestKey {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid api_key"})
+		return
+	}
+
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil || len(body) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "empty body"})
+		return
+	}
+
+	// Validate JSON before writing
+	var check map[string]any
+	if err := json.Unmarshal(body, &check); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
+		return
+	}
+
+	if err := os.WriteFile(filepath.Join(getIgDir(), "config.json"), body, 0644); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+// GET /api/ig/status — quick file-based + optional live Python check
+// ?live=1  → calls check_sessions.py (slower, validates with IG)
+func (h *Handler) igStatus(c *gin.Context) {
+	apiKey := c.GetHeader("X-API-Key")
+	if apiKey == "" {
+		apiKey = c.Query("api_key")
+	}
+	if apiKey != h.ingestKey {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid api_key"})
+		return
+	}
+
+	if c.Query("live") == "1" {
+		// Delegate to Python for live IG validation
+		igDir2 := getIgDir()
+		script := filepath.Join(igDir2, "check_sessions.py")
+		cmd := exec.CommandContext(c.Request.Context(), igPythonPath(), script, "--batch")
+		cmd.Dir = igDir2
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "detail": string(out)})
+			return
+		}
+		c.Data(http.StatusOK, "application/json", bytes.TrimSpace(out))
+		return
+	}
+
+	// Fast path: read config + check file existence / age only
+	data, err := os.ReadFile(filepath.Join(getIgDir(), "config.json"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "config.json not found"})
+		return
+	}
+
+	var cfg map[string]any
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	type accountStatus struct {
+		Username    string  `json:"username"`
+		Enabled     bool    `json:"enabled"`
+		FileExists  bool    `json:"file_exists"`
+		FileAgeDays float64 `json:"file_age_days"`
+		Status      string  `json:"status"`
+		Message     string  `json:"message"`
+	}
+
+	accounts, _ := cfg["scraper_accounts"].([]any)
+	result := make([]accountStatus, 0, len(accounts))
+
+	for _, raw := range accounts {
+		acc, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		username, _ := acc["username"].(string)
+		sessionFile, _ := acc["session_file"].(string)
+		enabled, _ := acc["enabled"].(bool)
+		if _, hasEnabled := acc["enabled"]; !hasEnabled {
+			enabled = true
+		}
+
+		st := accountStatus{Username: username, Enabled: enabled}
+
+		fpath := filepath.Join(getIgDir(), sessionFile)
+		info, err := os.Stat(fpath)
+		if err != nil {
+			st.Status = "missing"
+			st.Message = "Session file tidak ada. Silakan login ulang."
+		} else {
+			st.FileExists = true
+			age := time.Since(info.ModTime()).Hours() / 24
+			st.FileAgeDays = math.Round(age*10) / 10
+			if age > 30 {
+				st.Status = "expired"
+				st.Message = fmt.Sprintf("Session berumur %.0f hari, kemungkinan expired.", age)
+			} else {
+				st.Status = "ok"
+				st.Message = fmt.Sprintf("Session aktif (diperbarui %.1f hari lalu)", age)
+			}
+		}
+		result = append(result, st)
+	}
+
+	c.JSON(http.StatusOK, result)
 }

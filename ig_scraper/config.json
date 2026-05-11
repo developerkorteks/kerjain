@@ -1,0 +1,37 @@
+{
+  "poll_interval": 3600,
+  "scraper_accounts": [
+    {
+      "username": "benangkusutkujourney",
+      "session_file": "session_benangkusutkujourney.json",
+      "enabled": true
+    },
+    {
+      "username": "quots_kenyataan",
+      "session_file": "session_quots_kenyataan.json",
+      "enabled": true
+    }
+  ],
+  "targets": [
+    {
+      "username": "lokermahasiswa_smg",
+      "posts": 20,
+      "enabled": true
+    },
+    {
+      "username": "lokersmg",
+      "posts": 20,
+      "enabled": true
+    },
+    {
+      "username": "lokersemar.id",
+      "posts": 20,
+      "enabled": true
+    },
+    {
+      "username": "lokerbarista.semarang",
+      "posts": 20,
+      "enabled": true
+    }
+  ]
+}

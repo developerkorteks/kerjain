@@ -35,6 +35,12 @@ lokerwa-bin
 .DS_Store
 Thumbs.db
 
+# ── ig_scraper ────────────────────────────────────────────────
+ig_scraper/venv/
+ig_scraper/.env
+ig_scraper/session*.json
+ig_scraper/seen_ids.json
+
 # ── Misc ──────────────────────────────────────────────────────
 *.bak
 *.log
