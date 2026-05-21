@@ -42,6 +42,7 @@ func TestIsJobPosting_True(t *testing.T) {
 		{"urgently needed", "Delivery driver urgently needed"},
 		{"urgently required", "Cashier urgently required today"},
 		{"we need", "We need 2 bartenders for weekend"},
+		{"need room attendant", "Need Room attendant URGENT For today"},
 		{"looking for", "Looking for experienced cook"},
 		{"job vacancy", "Job vacancy available immediately"},
 		{"open position", "Open position: marketing staff"},
@@ -244,6 +245,37 @@ Contact: 082134567890 (WA)`
 	}
 	if j.Contact == "" {
 		t.Error("expected contact extracted from English job post")
+	}
+}
+
+func TestExtract_TitleFromPositionLine(t *testing.T) {
+	text := `LOWONGAN KERJA SEMARANG
+BMN Group membuka kesempatan untuk kamu yang aktif.
+
+Posisi: Staff Outlet
+Lokasi: Ungaran`
+
+	j := Extract(text)
+	if !j.IsJobPosting {
+		t.Fatal("expected IsJobPosting=true")
+	}
+	if j.Title != "Staff Outlet" {
+		t.Fatalf("expected title=Staff Outlet, got %q", j.Title)
+	}
+}
+
+func TestExtract_TitleSkipsGenericHiringLead(t *testing.T) {
+	text := `We're Hiring - Staff Outlet
+Kualifikasi:
+- Ramah
+- Disiplin`
+
+	j := Extract(text)
+	if !j.IsJobPosting {
+		t.Fatal("expected IsJobPosting=true")
+	}
+	if j.Title != "Staff Outlet" {
+		t.Fatalf("expected title=Staff Outlet, got %q", j.Title)
 	}
 }
 

@@ -50,6 +50,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 /* BOARD */
 .board{display:flex;flex:1;overflow:hidden}
+.board-switch{display:none;padding:10px 12px;border-bottom:1px solid var(--border);background:rgba(15,17,23,.95);gap:8px;flex-wrap:wrap}
+.board-switch .btn{border:1px solid var(--border);background:#161925;color:var(--muted);padding:7px 10px;border-radius:999px}
+.board-switch .btn.active{background:#312e81;border-color:#4338ca;color:#c7d2fe}
 .col{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:260px}
 .col:last-child{border-right:none}
 .col-hdr{padding:10px 14px;font-size:.78rem;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px;flex-shrink:0;border-bottom:1px solid var(--border);text-transform:uppercase}
@@ -104,6 +107,54 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .overlay.hide{display:none}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto;padding:20px}
 .modal h2{font-size:.95rem;font-weight:700;color:#a78bfa;margin-bottom:14px}
+.ig-modal{max-width:680px;width:95%;padding:22px}
+.ig-title{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}
+.ig-title h2{margin-bottom:4px}
+.ig-subtitle{font-size:.78rem;color:var(--muted);line-height:1.5;max-width:440px}
+.ig-close{background:transparent;border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:1rem;flex-shrink:0}
+.ig-close:hover{color:var(--text);border-color:#4c4f70}
+.ig-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.ig-tab{background:#161925;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:999px;font-size:.76rem;font-weight:700}
+.ig-tab.active{background:#312e81;border-color:#4338ca;color:#c7d2fe}
+.ig-panel{background:#151821;border:1px solid var(--border);border-radius:14px;padding:16px}
+.ig-panel p{font-size:.79rem;color:var(--muted);line-height:1.55}
+.ig-label{display:block;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#9aa4b8;margin-bottom:8px}
+.ig-helper{font-size:.73rem;color:#7f889c;line-height:1.5;margin-top:8px}
+.ig-textarea,.ig-input{background:#111318;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 12px;font-size:.8rem;font-family:inherit;width:100%}
+.ig-textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical;min-height:200px}
+.ig-inline{display:flex;gap:10px;align-items:center}
+.ig-actions{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.ig-actions .btn{padding:8px 12px;border-radius:10px}
+.ig-actions .btn-main{flex:1;min-width:180px}
+.ig-card-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.ig-empty{padding:14px;border:1px dashed #31374d;border-radius:12px;color:var(--muted);font-size:.78rem;background:#111318}
+.ig-target-card,.ig-bot-card{background:#111318;border:1px solid #2a3043;border-radius:12px;padding:12px}
+.ig-target-card{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:10px;align-items:center}
+.ig-target-main{min-width:0}
+.ig-target-name{font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:3px}
+.ig-target-meta{font-size:.72rem;color:var(--muted)}
+.ig-target-posts{display:flex;align-items:center;gap:6px}
+.ig-target-posts input{width:68px;text-align:center}
+.ig-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.7rem;font-weight:700;border:1px solid #32394f;background:#171b26;color:#aab3c5}
+.ig-chip.live{background:#0d1f18;border-color:#14532d;color:#86efac}
+.ig-chip.warn{background:#31210f;border-color:#92400e;color:#fcd34d}
+.ig-chip.bad{background:#301419;border-color:#7f1d1d;color:#fca5a5}
+.ig-target-add{display:grid;grid-template-columns:1fr 96px auto;gap:10px;align-items:end}
+.ig-mini-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ig-mini-actions .btn{padding:6px 10px;border-radius:999px;font-size:.73rem}
+.ig-bot-card{display:flex;flex-direction:column;gap:10px}
+.ig-bot-top{display:flex;align-items:flex-start;gap:10px}
+.ig-bot-icon{font-size:1.1rem;line-height:1}
+.ig-bot-main{flex:1;min-width:0}
+.ig-bot-name{font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.ig-bot-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ig-bot-note{font-size:.74rem;color:var(--muted);line-height:1.5}
+.ig-status-line{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ig-poll{margin-top:14px;padding-top:14px;border-top:1px solid #24293a}
+.ig-poll-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-top:8px}
+.ig-poll-hint{font-size:.72rem;color:var(--muted)}
+.ig-msg{margin-top:10px;font-size:.78rem;display:none}
+.ig-muted-strong{color:#cbd5e1;font-weight:600}
 .m-img{width:100%;border-radius:6px;margin-bottom:12px;max-height:260px;object-fit:contain;background:#111}
 .m-raw{background:var(--card);border-radius:5px;padding:8px 10px;font-size:.72rem;color:#666;line-height:1.5;max-height:100px;overflow-y:auto;margin-bottom:14px;white-space:pre-wrap;border:1px solid var(--border)}
 .fg{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
@@ -117,6 +168,50 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .b-save{background:#7c3aed;color:#fff;flex:1;padding:8px}
 .b-save-valid{background:#065f46;color:#6ee7b7;padding:8px 14px}
 .b-cancel{background:var(--card);color:var(--muted);padding:8px 14px}
+@media (max-width:1100px){
+  body{overflow:auto}
+  .layout{height:auto;min-height:calc(100vh - 48px)}
+  .hdr{align-items:flex-start}
+  .filters{min-width:100%;order:3}
+  .filters select{flex:1;min-width:140px}
+  .stats{width:100%;justify-content:space-between;flex-wrap:wrap}
+}
+@media (max-width:900px){
+  body{height:auto}
+  .layout{flex-direction:column;overflow:visible}
+  .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border)}
+  .sidebar-hdr{padding-bottom:8px}
+  .grp-list{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:10px 12px}
+  .grp-item{min-width:200px;margin-bottom:0;background:#181c27;border:1px solid transparent}
+  .sidebar-footer{display:flex;justify-content:flex-end;padding:10px 12px}
+  .board{display:block;overflow:visible}
+  .board-switch{display:flex}
+  .col{min-width:100%;border-right:none;border-bottom:1px solid var(--border);min-height:calc(100vh - 280px)}
+  .cards{overflow:visible}
+}
+@media (max-width:640px){
+  .hdr{padding:10px 12px;gap:10px}
+  .hdr-title{width:100%;display:flex;justify-content:space-between;align-items:center}
+  .hdr-title a{margin-left:0}
+  .filters{gap:8px}
+  .filters select,.filters input{min-height:40px;border-radius:10px;padding:8px 10px}
+  .stats{gap:8px;font-size:.72rem}
+  .stat{background:#161925;border:1px solid var(--border);padding:6px 8px;border-radius:999px}
+  .board-switch{padding:10px}
+  .col-hdr{position:sticky;top:0;z-index:2}
+  .cards{padding:8px}
+  .card{padding:9px}
+  .card-acts .btn{flex:1;justify-content:center}
+}
+@media (max-width:720px){
+  .ig-modal{padding:16px}
+  .ig-title{align-items:center}
+  .ig-target-card{grid-template-columns:auto 1fr auto}
+  .ig-target-posts{grid-column:2/4;justify-content:flex-start}
+  .ig-target-add{grid-template-columns:1fr}
+  .ig-poll-row{grid-template-columns:1fr}
+  .ig-actions .btn-main,.ig-actions .btn{width:100%}
+}
 </style>
 </head>
 <body style="display:flex;flex-direction:column;height:100vh">
@@ -130,6 +225,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       <option value="">Semua Tipe</option>
       <option value="text">Text</option>
       <option value="image">Image</option>
+    </select>
+    <select id="fDate">
+      <option value="">Semua Tanggal</option>
+      <option value="today">Hari Ini</option>
+      <option value="3days">3 Hari</option>
+      <option value="week">7 Hari</option>
+      <option value="month">30 Hari</option>
     </select>
     <input id="fSearch" type="text" placeholder="Cari title, kontak, teks…">
   </div>
@@ -155,6 +257,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
   <!-- KANBAN -->
   <div class="board">
+    <div class="board-switch" id="boardSwitch">
+      <button class="btn active" id="switchRaw" onclick="setMobileStatus('raw')">Perlu Review</button>
+      <button class="btn" id="switchReview" onclick="setMobileStatus('review')">Diperbaiki</button>
+      <button class="btn" id="switchValid" onclick="setMobileStatus('valid')">Valid</button>
+    </div>
     <div class="col col-raw">
       <div class="col-hdr">Perlu Review <span class="badge" id="hRaw">0</span></div>
       <div class="cards" id="cRaw"><div class="empty-pick">← Pilih grup di kiri<br><span style="font-size:.75rem">untuk mulai review</span></div></div>
@@ -173,64 +280,77 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 <!-- IG Management Modal -->
 <div class="overlay hide" id="igOverlay" style="z-index:200">
-  <div class="modal" style="max-width:560px;width:95%">
-    <h2 style="color:#a78bfa;margin-bottom:14px">📸 Instagram Scraper</h2>
-    <div style="display:flex;gap:6px;margin-bottom:14px">
-      <button class="btn" id="igTabLogin" onclick="igTab('login')" style="background:#312e81;border:1px solid #4338ca;color:#a5b4fc">Login Akun Bot</button>
-      <button class="btn" id="igTabTargets" onclick="igTab('targets')" style="background:var(--card);border:1px solid var(--border)">Target Akun</button>
-      <button class="btn" id="igTabSettings" onclick="igTab('settings')" style="background:var(--card);border:1px solid var(--border)">Pengaturan</button>
+  <div class="modal ig-modal">
+    <div class="ig-title">
+      <div>
+        <h2>📸 Instagram Scraper</h2>
+        <div class="ig-subtitle">Kelola akun bot, target akun yang dipantau, dan interval polling dari satu panel yang lebih rapi.</div>
+      </div>
+      <button class="ig-close" onclick="closeIG()" aria-label="Tutup">✕</button>
+    </div>
+    <div class="ig-tabs">
+      <button class="btn ig-tab active" id="igTabLogin" onclick="igTab('login')">Login Akun Bot</button>
+      <button class="btn ig-tab" id="igTabTargets" onclick="igTab('targets')">Target Akun</button>
+      <button class="btn ig-tab" id="igTabSettings" onclick="igTab('settings')">Pengaturan</button>
     </div>
 
     <!-- TAB: LOGIN -->
-    <div id="igPaneLogin">
-      <p style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Paste cookies JSON dari browser (export via <b>Cookie-Editor</b> atau <b>EditThisCookie</b>). Pastikan sudah login di instagram.com.</p>
+    <div id="igPaneLogin" class="ig-panel">
+      <label class="ig-label" for="igCookies">Cookies JSON dari browser</label>
+      <p>Paste hasil export dari <span class="ig-muted-strong">Cookie-Editor</span> atau <span class="ig-muted-strong">EditThisCookie</span>. Pastikan akun sudah login di <span class="ig-muted-strong">instagram.com</span> sebelum menyalin cookie.</p>
       <textarea id="igCookies" rows="9" placeholder='[{"name":"sessionid","value":"..."}]'
-        style="width:100%;background:#111318;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px;font-size:.73rem;font-family:monospace;resize:vertical"></textarea>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
-        <button class="btn b-val" onclick="igLogin()" style="flex:1">Login →</button>
-        <button class="btn b-back" onclick="closeIG()">Batal</button>
+        class="ig-textarea"></textarea>
+      <div class="ig-helper">Jika login berhasil, session akan disimpan dan akun bot akan muncul di tab <span class="ig-muted-strong">Pengaturan</span>.</div>
+      <div class="ig-actions">
+        <button class="btn b-val btn-main" onclick="igLogin()">Login & Simpan Session</button>
+        <button class="btn b-back" onclick="closeIG()">Tutup</button>
       </div>
-      <div id="igLoginMsg" style="margin-top:8px;font-size:.78rem;display:none"></div>
+      <div id="igLoginMsg" class="ig-msg"></div>
     </div>
 
     <!-- TAB: TARGETS -->
-    <div id="igPaneTargets" class="hide">
-      <p style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Akun IG yang di-monitor. Perubahan aktif di polling berikutnya tanpa restart.</p>
-      <div id="igTargetList" style="margin-bottom:10px"></div>
-      <div style="display:flex;gap:6px;margin-bottom:10px">
-        <input id="igNewUser" type="text" placeholder="username (tanpa @)" style="flex:1;background:#111318;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:5px 8px;font-size:.78rem">
-        <input id="igNewPosts" type="number" value="20" min="1" max="50" style="width:60px;background:#111318;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:5px 8px;font-size:.78rem">
+    <div id="igPaneTargets" class="hide ig-panel">
+      <p>Akun target akan dipakai di polling berikutnya tanpa perlu restart server. Gunakan daftar ini untuk menjaga scraper tetap fokus dan mudah dirawat.</p>
+      <div id="igTargetList" class="ig-card-list"></div>
+      <div class="ig-target-add">
+        <input id="igNewUser" type="text" placeholder="username target tanpa @" class="ig-input">
+        <input id="igNewPosts" type="number" value="20" min="1" max="50" class="ig-input">
         <button class="btn b-val" onclick="igAddTarget()">+ Tambah</button>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn b-val" onclick="igSaveConfig()" style="flex:1">Simpan</button>
+      <div class="ig-helper">Atur jumlah post per akun jika Anda ingin akun tertentu di-scan lebih dalam daripada yang lain.</div>
+      <div class="ig-actions">
+        <button class="btn b-val btn-main" onclick="igSaveConfig()">Simpan Target</button>
         <button class="btn b-back" onclick="closeIG()">Tutup</button>
       </div>
-      <div id="igTargetsMsg" style="margin-top:8px;font-size:.78rem;display:none"></div>
+      <div id="igTargetsMsg" class="ig-msg"></div>
     </div>
 
     <!-- TAB: SETTINGS -->
-    <div id="igPaneSettings" class="hide">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <p style="font-size:.78rem;color:var(--muted)">Status bot accounts</p>
-        <div style="display:flex;gap:5px">
-          <button class="btn" onclick="igRefreshStatus(false)" style="padding:2px 8px;font-size:.72rem;background:var(--card);border:1px solid var(--border)">⚡ Cek Cepat</button>
-          <button class="btn b-val" onclick="igRefreshStatus(true)" style="padding:2px 8px;font-size:.72rem" title="Validasi langsung ke Instagram (lambat ~5s/akun)">🔍 Cek Live</button>
+    <div id="igPaneSettings" class="hide ig-panel">
+      <div class="ig-status-line">
+        <div>
+          <label class="ig-label" style="margin-bottom:4px">Status Bot Accounts</label>
+          <p style="margin:0">Pantau kesehatan session tiap akun bot sebelum scraping berjalan lama tanpa Anda sadari.</p>
+        </div>
+        <div class="ig-mini-actions">
+          <button class="btn" onclick="igRefreshStatus(false)" style="background:var(--card);border:1px solid var(--border)">⚡ Cek Cepat</button>
+          <button class="btn b-val" onclick="igRefreshStatus(true)" title="Validasi langsung ke Instagram (lebih lambat per akun)">🔍 Cek Live</button>
         </div>
       </div>
-      <div id="igBotList" style="font-size:.75rem;margin-bottom:12px">Memuat...</div>
-      <label style="font-size:.78rem;display:block;margin-bottom:10px">Interval Polling
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-          <input id="igInterval" type="number" min="300" max="86400" value="3600"
-            style="flex:1;background:#111318;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:5px 8px;font-size:.78rem">
-          <span style="font-size:.72rem;color:var(--muted);white-space:nowrap" id="igIntervalLabel">60 menit</span>
+      <div id="igBotList" class="ig-card-list">Memuat...</div>
+      <div class="ig-poll">
+        <label class="ig-label" for="igInterval">Interval Polling</label>
+        <div class="ig-poll-row">
+          <input id="igInterval" type="number" min="300" max="86400" value="3600" class="ig-input">
+          <span class="ig-chip" id="igIntervalLabel">60 menit</span>
         </div>
-      </label>
-      <div style="display:flex;gap:8px">
-        <button class="btn b-val" onclick="igSaveConfig()" style="flex:1">Simpan</button>
+        <div class="ig-poll-hint">Gunakan interval lebih pendek jika target sedikit, atau lebih panjang untuk mengurangi risiko session cepat diblokir.</div>
+      </div>
+      <div class="ig-actions">
+        <button class="btn b-val btn-main" onclick="igSaveConfig()">Simpan Pengaturan</button>
         <button class="btn b-back" onclick="closeIG()">Tutup</button>
       </div>
-      <div id="igSettingsMsg" style="margin-top:8px;font-size:.78rem;display:none"></div>
+      <div id="igSettingsMsg" class="ig-msg"></div>
     </div>
   </div>
 </div>
@@ -327,17 +447,32 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 </div>
 
 <script>
-let all = [];
+let summary = { totals: { raw: 0, review: 0, valid: 0 }, groups: [] };
+let jobsByStatus = { raw: [], review: [], valid: [] };
+let countsByStatus = { raw: 0, review: 0, valid: 0 };
+let pagesByStatus = { raw: 1, review: 1, valid: 1 };
+const PAGE_SIZE = 80;
+let mobileStatus = 'raw';
 let editId = null;
 let selectedGroup = null; // null = no group selected yet
 
 // ─── LOAD ────────────────────────────────────────────────
 async function loadAll() {
   try {
-    // is_job_posting=any → load ALL records (admin needs to classify everything)
-    const r = await fetch('/api/jobs?limit=2000&is_job_posting=any');
-    const d = await r.json();
-    all = d.jobs || [];
+    const f = filters();
+    const params = new URLSearchParams({ is_job_posting: 'any' });
+    if (f.type) params.set('type', f.type);
+    if (f.date) params.set('date_from', dateFromValue(f.date));
+    if (f.q) params.set('q', f.q);
+
+    const r = await fetch('/api/jobs/summary?' + params.toString());
+    summary = await r.json();
+
+    jobsByStatus = { raw: [], review: [], valid: [] };
+    countsByStatus = { raw: 0, review: 0, valid: 0 };
+    pagesByStatus = { raw: 1, review: 1, valid: 1 };
+    if (selectedGroup) await loadColumns(f);
+
     buildGroupSidebar();
     render();
   } catch(e) {
@@ -345,30 +480,73 @@ async function loadAll() {
   }
 }
 
+async function loadColumns(f) {
+  for (const status of ['raw', 'review', 'valid']) {
+    pagesByStatus[status] = 1;
+    const params = new URLSearchParams({
+      limit: String(PAGE_SIZE),
+      page: '1',
+      status,
+      is_job_posting: 'any',
+    });
+    if (selectedGroup) params.set('group', selectedGroup);
+    if (f.type) params.set('type', f.type);
+    if (f.date) params.set('date_from', dateFromValue(f.date));
+    if (f.q) params.set('q', f.q);
+    const r = await fetch('/api/jobs?' + params.toString());
+    const d = await r.json();
+    jobsByStatus[status] = d.jobs || [];
+    countsByStatus[status] = d.total || 0;
+  }
+}
+
+async function loadMore(status) {
+  const nextPage = (pagesByStatus[status] || 1) + 1;
+  const f = filters();
+  const params = new URLSearchParams({
+    limit: String(PAGE_SIZE),
+    page: String(nextPage),
+    status,
+    is_job_posting: 'any',
+  });
+  if (selectedGroup) params.set('group', selectedGroup);
+  if (f.type) params.set('type', f.type);
+  if (f.date) params.set('date_from', dateFromValue(f.date));
+  if (f.q) params.set('q', f.q);
+
+  const btn = document.getElementById('loadmore-' + status);
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Memuat...';
+  }
+
+  try {
+    const r = await fetch('/api/jobs?' + params.toString());
+    const d = await r.json();
+    const more = d.jobs || [];
+    jobsByStatus[status] = jobsByStatus[status].concat(more);
+    countsByStatus[status] = d.total || countsByStatus[status];
+    pagesByStatus[status] = nextPage;
+    render();
+  } catch (e) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Gagal, coba lagi';
+    }
+  }
+}
+
 // ─── GROUP SIDEBAR ───────────────────────────────────────
 function buildGroupSidebar() {
-  const groups = {};
-  all.forEach(j => {
-    const gid = j.source_group || 'unknown';
-    if (!groups[gid]) groups[gid] = { name: j.group_name || gid, raw: 0, review: 0, valid: 0 };
-    const s = j.status || 'raw';
-    if (s in groups[gid]) groups[gid][s]++;
-  });
-
-  // sort: most pending first, then by name
-  const sorted = Object.entries(groups).sort(([,a],[,b]) => {
-    if (b.raw !== a.raw) return b.raw - a.raw;
-    return a.name.localeCompare(b.name);
-  });
-
   const list = document.getElementById('grpList');
   list.innerHTML = '';
-  sorted.forEach(([gid, g]) => {
+  (summary.groups || []).forEach(g => {
+    const gid = g.group;
     const div = document.createElement('div');
     div.className = 'grp-item' + (selectedGroup === gid ? ' active' : '');
     div.onclick = () => selectGroup(gid);
     div.innerHTML = `
-      <div class="grp-name" title="${esc(g.name)}">${esc(g.name)}</div>
+      <div class="grp-name" title="${esc(g.group_name || gid)}">${esc(g.group_name || gid)}</div>
       <div class="grp-badges">
         <span class="grp-badge gb-raw${g.raw > 0 ? ' has' : ''}">${g.raw} pending</span>
         ${g.valid > 0 ? `<span class="grp-badge gb-val">${g.valid} valid</span>` : ''}
@@ -379,66 +557,92 @@ function buildGroupSidebar() {
 
 function selectGroup(gid) {
   selectedGroup = gid;
-  buildGroupSidebar(); // re-render sidebar to update active state
-  render();
+  loadAll();
 }
 
 // ─── RENDER ──────────────────────────────────────────────
 function filters() {
   return {
     type: document.getElementById('fType').value,
+    date: document.getElementById('fDate').value,
     q:    document.getElementById('fSearch').value.toLowerCase(),
   };
 }
 
-function matches(j, f) {
-  if (selectedGroup && j.source_group !== selectedGroup) return false;
-  if (f.type && j.msg_type !== f.type) return false;
-  if (f.q) {
-    const hay = [j.title,j.contact,j.group_name,j.company,j.location,j.raw_text,''].join(' ').toLowerCase();
-    if (!hay.includes(f.q)) return false;
+function dateFromValue(key) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  switch (key) {
+    case 'today':
+      break;
+    case '3days':
+      d.setDate(d.getDate() - 3);
+      break;
+    case 'week':
+      d.setDate(d.getDate() - 7);
+      break;
+    case 'month':
+      d.setDate(d.getDate() - 30);
+      break;
+    default:
+      return '';
   }
-  return true;
+  return d.toISOString().slice(0, 10);
 }
 
 function render() {
+  applyBoardMode();
   if (!selectedGroup) {
     // no group selected: show prompt, update global stats only
     document.getElementById('cRaw').innerHTML = '<div class="empty-pick">← Pilih grup di kiri<br><span style="font-size:.75rem;color:#4c5166">untuk mulai review per grup</span></div>';
     document.getElementById('cRev').innerHTML = '';
     document.getElementById('cVal').innerHTML = '';
-    const tot = { raw:0, review:0, valid:0 };
-    all.forEach(j => { const s = j.status||'raw'; if (s in tot) tot[s]++; });
-    document.getElementById('sRaw').textContent = tot.raw;
-    document.getElementById('sRev').textContent = tot.review;
-    document.getElementById('sVal').textContent = tot.valid;
-    document.getElementById('hRaw').textContent = tot.raw;
-    document.getElementById('hRev').textContent = tot.review;
-    document.getElementById('hVal').textContent = tot.valid;
+    document.getElementById('sRaw').textContent = summary.totals?.raw || 0;
+    document.getElementById('sRev').textContent = summary.totals?.review || 0;
+    document.getElementById('sVal').textContent = summary.totals?.valid || 0;
+    document.getElementById('hRaw').textContent = summary.totals?.raw || 0;
+    document.getElementById('hRev').textContent = summary.totals?.review || 0;
+    document.getElementById('hVal').textContent = summary.totals?.valid || 0;
     return;
   }
-
-  const f = filters();
-  const cols = { raw:[], review:[], valid:[] };
-  all.forEach(j => {
-    if (!matches(j, f)) return;
-    const s = j.status || 'raw';
-    if (s in cols) cols[s].push(j);
-  });
 
   ['raw','review','valid'].forEach(s => {
     const el = document.getElementById({raw:'cRaw',review:'cRev',valid:'cVal'}[s]);
     el.innerHTML = '';
-    if (!cols[s].length) { el.innerHTML = '<div class="empty-col">Kosong</div>'; return; }
-    cols[s].forEach(j => el.appendChild(mkCard(j)));
+    if (!jobsByStatus[s].length) { el.innerHTML = '<div class="empty-col">Kosong</div>'; return; }
+    jobsByStatus[s].forEach(j => el.appendChild(mkCard(j)));
+    if (jobsByStatus[s].length < countsByStatus[s]) {
+      el.appendChild(mkLoadMore(s));
+    }
   });
 
-  document.getElementById('sRaw').textContent = cols.raw.length;
-  document.getElementById('sRev').textContent = cols.review.length;
-  document.getElementById('sVal').textContent = cols.valid.length;
-  document.getElementById('hRaw').textContent = cols.raw.length;
-  document.getElementById('hRev').textContent = cols.review.length;
-  document.getElementById('hVal').textContent = cols.valid.length;
+  document.getElementById('sRaw').textContent = countsByStatus.raw;
+  document.getElementById('sRev').textContent = countsByStatus.review;
+  document.getElementById('sVal').textContent = countsByStatus.valid;
+  document.getElementById('hRaw').textContent = countsByStatus.raw;
+  document.getElementById('hRev').textContent = countsByStatus.review;
+  document.getElementById('hVal').textContent = countsByStatus.valid;
+}
+
+function setMobileStatus(status) {
+  mobileStatus = status;
+  applyBoardMode();
+}
+
+function applyBoardMode() {
+  const mobile = window.innerWidth <= 900;
+  const map = { raw: 'switchRaw', review: 'switchReview', valid: 'switchValid' };
+  ['raw', 'review', 'valid'].forEach(status => {
+    const col = document.querySelector('.col-' + (status === 'review' ? 'rev' : status === 'valid' ? 'val' : 'raw'));
+    if (!col) return;
+    if (mobile) {
+      col.style.display = status === mobileStatus ? 'flex' : 'none';
+    } else {
+      col.style.display = 'flex';
+    }
+    const btn = document.getElementById(map[status]);
+    if (btn) btn.classList.toggle('active', status === mobileStatus);
+  });
 }
 
 // ─── CARD ───────────────────────────────────────────────
@@ -502,32 +706,44 @@ function row(k, v) {
   return `<div class="frow"><span class="fk">${esc(k)}</span><span class="fv">${esc(String(v||''))}</span></div>`;
 }
 
+function mkLoadMore(status) {
+  const wrap = document.createElement('div');
+  wrap.style.padding = '6px 0 2px';
+  wrap.style.display = 'flex';
+  wrap.style.justifyContent = 'center';
+  wrap.innerHTML = `
+    <button
+      id="loadmore-${status}"
+      class="btn b-back"
+      style="padding:6px 12px;font-size:.72rem"
+      onclick="loadMore('${status}')"
+    >
+      Muat lagi (${jobsByStatus[status].length}/${countsByStatus[status]})
+    </button>`;
+  return wrap;
+}
+
 // ─── MOVE / DELETE ───────────────────────────────────────
 async function move(id, status) {
-  const j = all.find(x => x.id === id);
+  const j = findJob(id);
   if (!j) return;
   const patch = jobToPatch(j);
   patch.status = status;
   // validating always implies this is a confirmed job posting
   if (status === 'valid') patch.is_job_posting = true;
   await api('PATCH', '/api/jobs/' + id, patch);
-  j.status = status;
-  if (status === 'valid') j.is_job_posting = true;
-  buildGroupSidebar();
-  render();
+  await loadAll();
 }
 
 async function del(id) {
   if (!confirm('Hapus job posting ini?')) return;
   await api('DELETE', '/api/jobs/' + id);
-  all = all.filter(j => j.id !== id);
-  buildGroupSidebar();
-  render();
+  await loadAll();
 }
 
 // ─── EDIT MODAL ─────────────────────────────────────────
 function openEdit(id) {
-  const j = all.find(x => x.id === id);
+  const j = findJob(id);
   if (!j) return;
   editId = id;
 
@@ -585,10 +801,8 @@ async function saveEdit(forceStatus) {
     benefits:     document.getElementById('eBens').value.split('\n').map(s=>s.trim()).filter(Boolean),
   };
   const updated = await api('PATCH', '/api/jobs/' + editId, patch);
-  const idx = all.findIndex(j => j.id === editId);
-  if (idx >= 0 && updated) Object.assign(all[idx], updated);
   closeModal();
-  render();
+  if (updated) await loadAll();
 }
 
 // ─── HELPERS ─────────────────────────────────────────────
@@ -616,17 +830,30 @@ function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function findJob(id) {
+  for (const status of ['raw', 'review', 'valid']) {
+    const found = jobsByStatus[status].find(j => j.id === id);
+    if (found) return found;
+  }
+  return null;
+}
+
 // ─── EVENTS ──────────────────────────────────────────────
-document.getElementById('fType').addEventListener('change', render);
-document.getElementById('fSearch').addEventListener('input', render);
+let searchTimer = null;
+document.getElementById('fType').addEventListener('change', loadAll);
+document.getElementById('fDate').addEventListener('change', loadAll);
+document.getElementById('fSearch').addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadAll, 250);
+});
+window.addEventListener('resize', applyBoardMode);
 document.getElementById('overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('overlay')) closeModal();
 });
 
 // Auto-refresh every 30s — preserve selected group
 setInterval(() => {
-  const prev = selectedGroup;
-  loadAll().then(() => { if (prev) selectGroup(prev); });
+  loadAll();
 }, 30000);
 loadAll();
 
@@ -657,9 +884,7 @@ function igTab(tab) {
   ['login','targets','settings'].forEach(t => {
     document.getElementById('igPane' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('hide', t !== tab);
     const btn = document.getElementById('igTab' + t.charAt(0).toUpperCase() + t.slice(1));
-    btn.style.background = t === tab ? '#312e81' : 'var(--card)';
-    btn.style.color      = t === tab ? '#a5b4fc' : 'var(--text)';
-    btn.style.border     = t === tab ? '1px solid #4338ca' : '1px solid var(--border)';
+    btn.classList.toggle('active', t === tab);
   });
 }
 
@@ -669,6 +894,19 @@ function igMsg(id, msg, ok) {
   el.style.color = ok ? '#10b981' : '#f87171';
   el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+async function fetchJsonWithTimeout(url, opts = {}, timeoutMs = 8000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { ...opts, signal: ctl.signal });
+    let data = null;
+    try { data = await r.json(); } catch {}
+    return { ok: r.ok, status: r.status, data };
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 async function igLogin() {
@@ -683,41 +921,48 @@ async function igLogin() {
 
   igMsg('igLoginMsg', 'Login ke Instagram...', true);
   try {
-    const r = await fetch('/api/ig/add-session?api_key=' + encodeURIComponent(key), {
+    const { ok, data } = await fetchJsonWithTimeout('/api/ig/add-session?api_key=' + encodeURIComponent(key), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cookies),
-    });
-    const d = await r.json();
-    if (d.ok) {
+    }, 20000);
+    const d = data || {};
+    if (ok && d.ok) {
       document.getElementById('igCookies').value = '';
-      await igLoadConfig();
+      await igLoadConfig(true);
       // Switch to Settings tab so user sees the validation status immediately
       igTab('settings');
-      igRefreshStatus(false);
+      await igRefreshStatus(false);
       igMsg('igLoginMsg', `✓ Login berhasil sebagai @${d.username}${d.added_to_config ? ' · ditambahkan ke config' : ' · session diperbarui'}`, true);
     } else {
       igMsg('igLoginMsg', '✗ ' + (d.error || JSON.stringify(d)), false);
     }
   } catch(e) {
-    igMsg('igLoginMsg', '✗ Request error: ' + e.message, false);
+    const msg = e.name === 'AbortError' ? '✗ Request timeout saat login Instagram' : ('✗ Request error: ' + e.message);
+    igMsg('igLoginMsg', msg, false);
   }
 }
 
-async function igLoadConfig() {
+async function igLoadConfig(silent = false) {
   const key = localStorage.getItem('ig_api_key') || '';
   if (!key) return;
   try {
-    const r = await fetch('/api/ig/config?api_key=' + encodeURIComponent(key));
-    if (!r.ok) return;
-    igCfg = await r.json();
+    const { ok, data, status } = await fetchJsonWithTimeout('/api/ig/config?api_key=' + encodeURIComponent(key), {}, 8000);
+    if (!ok || !data) {
+      document.getElementById('igBotList').innerHTML = `<div style="color:#f87171">Gagal memuat config IG${status ? ' (' + status + ')' : ''}</div>`;
+      if (!silent) igMsg('igSettingsMsg', '✗ Gagal memuat config Instagram', false);
+      return;
+    }
+    igCfg = data;
     renderTargets();
     renderBots(null);
     const iv = igCfg.poll_interval || 3600;
     document.getElementById('igInterval').value = iv;
     updateIntervalLabel(iv);
-    igRefreshStatus(false);
-  } catch(e) {}
+  } catch(e) {
+    document.getElementById('igBotList').innerHTML = `<div style="color:#f87171">${e.name === 'AbortError' ? 'Timeout saat memuat config IG' : esc(e.message)}</div>`;
+    if (!silent) igMsg('igSettingsMsg', '✗ Tidak bisa memuat config Instagram', false);
+  }
 }
 
 function updateIntervalLabel(v) {
@@ -729,25 +974,31 @@ document.getElementById('igInterval').addEventListener('input', e => updateInter
 function renderTargets() {
   const list = document.getElementById('igTargetList');
   if (!igCfg || !igCfg.targets || !igCfg.targets.length) {
-    list.innerHTML = '<div style="color:var(--muted);font-size:.75rem">Belum ada target.</div>';
+    list.innerHTML = '<div class="ig-empty">Belum ada target akun. Tambahkan username yang ingin dipantau di bawah.</div>';
     return;
   }
   list.innerHTML = igCfg.targets.map((t, i) => `
-    <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#111318;border-radius:5px;margin-bottom:4px">
+    <div class="ig-target-card">
       <input type="checkbox" ${t.enabled !== false ? 'checked' : ''} onchange="igToggleTarget(${i}, this.checked)" style="accent-color:#6366f1">
-      <span style="flex:1;font-size:.78rem;color:${t.enabled !== false ? 'var(--text)' : 'var(--muted)'}">@${esc(t.username)}</span>
-      <input type="number" value="${t.posts || 20}" min="1" max="50"
+      <div class="ig-target-main">
+        <div class="ig-target-name" style="color:${t.enabled !== false ? 'var(--text)' : 'var(--muted)'}">@${esc(t.username)}</div>
+        <div class="ig-target-meta">${t.enabled !== false ? 'Aktif dipantau' : 'Nonaktif sementara'}</div>
+      </div>
+      <span class="ig-chip ${t.enabled !== false ? 'live' : ''}">${t.enabled !== false ? 'Aktif' : 'Pause'}</span>
+      <div class="ig-target-posts">
+        <input type="number" value="${t.posts || 20}" min="1" max="50" class="ig-input"
         onchange="igCfg.targets[${i}].posts = +this.value"
-        style="width:52px;background:#1a1d27;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;font-size:.72rem">
-      <span style="font-size:.68rem;color:var(--muted)">post</span>
-      <button onclick="igRemoveTarget(${i})" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:.9rem">✕</button>
+        >
+        <span class="ig-target-meta">post</span>
+      </div>
+      <button onclick="igRemoveTarget(${i})" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:1rem">✕</button>
     </div>`).join('');
 }
 
 function renderBots(statuses) {
   const el = document.getElementById('igBotList');
   if (!igCfg || !igCfg.scraper_accounts || !igCfg.scraper_accounts.length) {
-    el.innerHTML = '<div style="color:var(--muted)">Belum ada bot account. Login dulu di tab <b>Login Akun Bot</b>.</div>';
+    el.innerHTML = '<div class="ig-empty">Belum ada bot account. Login dulu di tab <span class="ig-muted-strong">Login Akun Bot</span>.</div>';
     return;
   }
   const map = {};
@@ -762,14 +1013,21 @@ function renderBots(statuses) {
     const color = s ? (statusColors[st] || 'var(--muted)') : 'var(--muted)';
     const label = s ? (statusText[st] || st) : (a.enabled !== false ? 'Belum dicek' : 'Disabled');
     const msg   = s ? s.message : '';
-    return `<div style="display:flex;flex-direction:column;padding:7px 10px;background:#111318;border-radius:6px;margin-bottom:5px;border-left:3px solid ${color}">
-      <div style="display:flex;align-items:center;gap:7px">
-        <span style="font-size:1rem">${icon}</span>
-        <span style="flex:1;font-weight:600">@${esc(a.username)}</span>
-        <span style="font-size:.7rem;padding:1px 7px;border-radius:10px;background:${color}22;color:${color};border:1px solid ${color}44">${label}</span>
-        ${s && s.file_age_days !== null ? `<span style="font-size:.68rem;color:var(--muted)">${s.file_age_days}d</span>` : ''}
+    const chipClass = st === 'ok' ? 'live' : (st === 'expired' ? 'warn' : (st === 'missing' || st === 'error' ? 'bad' : ''));
+    return `<div class="ig-bot-card" style="border-left:3px solid ${color}">
+      <div class="ig-bot-top">
+        <span class="ig-bot-icon">${icon}</span>
+        <div class="ig-bot-main">
+          <div class="ig-bot-name">@${esc(a.username)}</div>
+          <div class="ig-bot-meta">
+            <span class="ig-chip ${chipClass}">${label}</span>
+            ${s && s.file_age_days !== null ? `<span class="ig-chip">${s.file_age_days} hari</span>` : ''}
+            ${s && s.last_seen ? `<span class="ig-chip">${esc(s.last_seen)}</span>` : ''}
+          </div>
+        </div>
       </div>
-      ${msg ? `<div style="font-size:.7rem;color:var(--muted);margin-top:3px;padding-left:27px">${esc(msg)}</div>` : ''}
+      ${msg ? `<div class="ig-bot-note">${esc(msg)}</div>` : `<div class="ig-bot-note">Belum ada catatan error. Gunakan cek live untuk memastikan session masih valid di Instagram.</div>`}
+      ${s && s.updated_ago ? `<div class="ig-target-meta">Terakhir update ${esc(s.updated_ago)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -781,12 +1039,15 @@ async function igRefreshStatus(live) {
   el.innerHTML = `<div style="color:var(--muted);font-size:.75rem">${live ? '🔍 Validasi ke Instagram...' : '⚡ Mengecek...'}</div>`;
   try {
     const url = `/api/ig/status?api_key=${encodeURIComponent(key)}${live ? '&live=1' : ''}`;
-    const r = await fetch(url);
-    if (!r.ok) { el.innerHTML = '<div style="color:#f87171">Gagal cek status</div>'; return; }
-    const statuses = await r.json();
+    const { ok, data, status } = await fetchJsonWithTimeout(url, {}, live ? 12000 : 8000);
+    if (!ok || !data) {
+      el.innerHTML = `<div style="color:#f87171">Gagal cek status${status ? ' (' + status + ')' : ''}</div>`;
+      return;
+    }
+    const statuses = data;
     renderBots(statuses);
   } catch(e) {
-    el.innerHTML = `<div style="color:#f87171">${e.message}</div>`;
+    el.innerHTML = `<div style="color:#f87171">${e.name === 'AbortError' ? 'Timeout saat cek status IG' : esc(e.message)}</div>`;
   }
 }
 

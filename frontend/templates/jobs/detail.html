@@ -68,7 +68,7 @@
     <div style="display:flex;flex-direction:column;gap:20px">
 
       <!-- Header -->
-      <div class="card" style="padding:28px;background:rgba(255,255,255,0.75)">
+      <div class="card" style="padding:30px;background:rgba(255,255,255,0.75)">
         <div style="display:flex;align-items:flex-start;gap:18px">
           <div style="width:56px;height:56px;border-radius:16px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#0f172a;flex-shrink:0">
             {{ job|avatar_letter }}
@@ -78,54 +78,66 @@
               {% for badge in job|detect_badges %}
               <span class="chip" style="{{ badge.style }};border:1px solid transparent">{{ badge.label }}</span>
               {% endfor %}
-              <span class="chip" style="{{ job.status|status_style }};border-width:1px">{{ job.status|status_label }}</span>
               <span class="chip" style="{{ job.msg_type|type_style }};border-width:1px">{{ job.msg_type|type_label }}</span>
             </div>
-            <h1 style="font-size:24px;font-weight:800;letter-spacing:-0.02em;color:#0f172a;line-height:1.2;margin-bottom:6px">{{ job|smart_title }}</h1>
-            {% if job.company %}<p style="font-size:15px;font-weight:600;color:#2563eb;margin-bottom:2px">{{ job.company }}</p>{% endif %}
-            <p style="font-size:13px;color:#94a3b8;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              {{ job.posted_at|relative_time }}
-              {% if job.posted_at|is_expired %}<span style="font-size:11px;font-weight:700;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:2px 8px">Mungkin expired — verifikasi sebelum melamar</span>{% endif %}
+            <h1 style="font-size:28px;font-weight:800;letter-spacing:-0.03em;color:#0f172a;line-height:1.2;margin-bottom:8px">{{ job|smart_title }}</h1>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:12px">
+              {% if job.company %}
+              <span style="font-size:14px;font-weight:700;color:#334155">{{ job.company }}</span>
+              {% endif %}
+              {% if job.company and job.location %}
+              <span style="color:#cbd5e1;font-size:12px">&middot;</span>
+              {% endif %}
+              {% if job.location %}
+              <span style="font-size:14px;color:#64748b">{{ job.location }}</span>
+              {% endif %}
+              <span class="chip" style="{{ job.status|status_style }};border-width:1px">{{ job.status|status_label }}</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px">
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:{% if job.posted_at|is_expired %}#9a3412{% else %}#475569{% endif %};padding:6px 10px;border-radius:999px;{% if job.posted_at|is_expired %}background:#fff7ed;border:1px solid #fed7aa;{% else %}background:#f8fafc;border:1px solid #e2e8f0;{% endif %}">
+                Diposting {{ job.posted_at|relative_time }}
+              </span>
+              <span style="font-size:12px;color:#94a3b8">{{ job.posted_at|date:"d M Y, H:i" }} WIB</span>
+            </div>
+            {% if job.posted_at|is_expired %}
+            <p style="margin-top:10px;font-size:12px;color:#9a3412;line-height:1.6">
+              Pastikan lowongan ini masih aktif sebelum kirim lamaran.
             </p>
+            {% endif %}
+            {% if job.salary %}
+            <div style="margin-top:14px">
+              <span style="display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;background:#f0fdf4;border:1px solid #bbf7d0;font-size:12px;font-weight:700;color:#059669;max-width:100%">
+                {{ job.salary }}
+              </span>
+            </div>
+            {% endif %}
           </div>
         </div>
 
         <!-- Meta grid -->
-        {% if job.location or job.salary or job.work_hours or job.education %}
+        {% if job.work_hours or job.education or job.gender or job.age_min or job.age_max %}
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:22px">
-          {% if job.location %}
-          <div style="background:#f8fafc;border-radius:14px;padding:14px">
-            <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Lokasi</div>
-            <div style="font-size:14px;font-weight:600;color:#0f172a">{{ job.location }}</div>
-          </div>
-          {% endif %}
-          {% if job.salary %}
-          <div style="background:#f0fdf4;border-radius:14px;padding:14px">
-            <div style="font-size:11px;color:#059669;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Gaji</div>
-            <div style="font-size:14px;font-weight:600;color:#0f172a">{{ job.salary }}</div>
-          </div>
-          {% endif %}
           {% if job.work_hours %}
-          <div style="background:#fffbeb;border-radius:14px;padding:14px">
-            <div style="font-size:11px;color:#d97706;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Jam Kerja</div>
+          <div style="background:#f8fafc;border-radius:14px;padding:14px;border:1px solid #eef2f7">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Jam Kerja</div>
             <div style="font-size:14px;font-weight:600;color:#0f172a">{{ job.work_hours }}</div>
           </div>
           {% endif %}
           {% if job.education %}
-          <div style="background:#f5f3ff;border-radius:14px;padding:14px">
-            <div style="font-size:11px;color:#7c3aed;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Pendidikan</div>
+          <div style="background:#f8fafc;border-radius:14px;padding:14px;border:1px solid #eef2f7">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Pendidikan</div>
             <div style="font-size:14px;font-weight:600;color:#0f172a">{{ job.education }}</div>
           </div>
           {% endif %}
           {% if job.gender and job.gender != "both" %}
-          <div style="background:#fdf2f8;border-radius:14px;padding:14px">
-            <div style="font-size:11px;color:#db2777;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Gender</div>
+          <div style="background:#f8fafc;border-radius:14px;padding:14px;border:1px solid #eef2f7">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Gender</div>
             <div style="font-size:14px;font-weight:600;color:#0f172a">{% if job.gender == "male" %}Laki-laki{% else %}Perempuan{% endif %}</div>
           </div>
           {% endif %}
           {% if job.age_min or job.age_max %}
-          <div style="background:#eff6ff;border-radius:14px;padding:14px">
-            <div style="font-size:11px;color:#2563eb;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Usia</div>
+          <div style="background:#f8fafc;border-radius:14px;padding:14px;border:1px solid #eef2f7">
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">Usia</div>
             <div style="font-size:14px;font-weight:600;color:#0f172a">
               {% if job.age_min and job.age_max %}{{ job.age_min }}&ndash;{{ job.age_max }} tahun
               {% elif job.age_max %}Maks {{ job.age_max }} tahun
@@ -140,9 +152,9 @@
       <!-- Description -->
       {% if job.raw_text %}
       <div class="card" style="padding:28px;background:rgba(255,255,255,0.75)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
-          <div style="width:3px;height:20px;border-radius:2px;background:#2563eb"></div>
-          <h2 style="font-size:16px;font-weight:700;color:#0f172a">Deskripsi Lengkap</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px">
+          <h2 style="font-size:16px;font-weight:800;color:#0f172a;letter-spacing:-0.01em">Deskripsi Lengkap</h2>
+          <span style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em">Detail</span>
         </div>
         <div style="font-size:14px;color:#475569;line-height:1.75;white-space:pre-wrap;font-weight:450">{{ job.raw_text }}</div>
       </div>
@@ -151,9 +163,9 @@
       <!-- Requirements -->
       {% if job.requirements %}
       <div class="card" style="padding:28px;background:rgba(255,255,255,0.75)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
-          <div style="width:3px;height:20px;border-radius:2px;background:#7c3aed"></div>
-          <h2 style="font-size:16px;font-weight:700;color:#0f172a">Persyaratan</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px">
+          <h2 style="font-size:16px;font-weight:800;color:#0f172a;letter-spacing:-0.01em">Persyaratan</h2>
+          <span style="font-size:11px;color:#94a3b8">{{ job.requirements|length }} poin</span>
         </div>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
           {% for req in job.requirements %}
@@ -171,9 +183,9 @@
       <!-- Benefits -->
       {% if job.benefits %}
       <div class="card" style="padding:28px;background:rgba(255,255,255,0.75)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
-          <div style="width:3px;height:20px;border-radius:2px;background:#059669"></div>
-          <h2 style="font-size:16px;font-weight:700;color:#0f172a">Benefit</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px">
+          <h2 style="font-size:16px;font-weight:800;color:#0f172a;letter-spacing:-0.01em">Benefit</h2>
+          <span style="font-size:11px;color:#94a3b8">{{ job.benefits|length }} poin</span>
         </div>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
           {% for b in job.benefits %}
@@ -191,9 +203,9 @@
       <!-- Image -->
       {% if job.media_path %}
       <div class="card" style="padding:24px;background:rgba(255,255,255,0.75)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-          <div style="width:3px;height:20px;border-radius:2px;background:#d97706"></div>
-          <h2 style="font-size:16px;font-weight:700;color:#0f172a">Gambar Lowongan</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px">
+          <h2 style="font-size:16px;font-weight:800;color:#0f172a;letter-spacing:-0.01em">Gambar Lowongan</h2>
+          <span style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em">Lampiran</span>
         </div>
         <img src="/media/{{ job.media_path }}" alt="Gambar lowongan"
              style="width:100%;border-radius:16px;max-height:600px;object-fit:contain;background:#f8fafc"
@@ -247,13 +259,14 @@
         <h3 style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:14px">Informasi</h3>
         <div style="display:flex;flex-direction:column;gap:10px">
           {% if job.sender_name %}
-          <div style="display:flex;justify-content:space-between;font-size:13px">
+          <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px">
             <span style="color:#94a3b8;font-weight:500">Pengirim</span>
-            <span style="color:#0f172a;font-weight:600">{{ job.sender_name }}</span>
+            <span style="color:#0f172a;font-weight:600;text-align:right">{{ job.sender_name }}</span>
           </div>
           {% endif %}
-          <div style="font-size:13px;color:#94a3b8;padding-top:6px;border-top:1px solid #f1f5f9">
-            Sumber: {{ job.group_name|default:job.source_group|truncatechars:32 }}
+          <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;padding-top:10px;border-top:1px solid #f1f5f9">
+            <span style="color:#94a3b8;font-weight:500">Sumber</span>
+            <span style="color:#475569;text-align:right">{{ job.group_name|default:job.source_group|truncatechars:32 }}</span>
           </div>
         </div>
       </div>

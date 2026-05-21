@@ -42,15 +42,19 @@ type JobPosting struct {
 // ── compiled regexes ──
 
 var (
-	phoneRe       = regexp.MustCompile(`(?:\+?62[\s\-]?|0)8\d{1,3}[\s\-.]?\d{3,5}[\s\-.]?\d{3,5}[\s\-.]?\d{0,4}`)
-	emailRe       = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
-	ageMaxRe      = regexp.MustCompile(`(?i)(?:usia\s+)?(?:maks?(?:imal)?\.?\s*|max\.?\s*)(\d{2})`)
-	ageRangeRe    = regexp.MustCompile(`(?i)usia\s+(\d{2})\s*[-–]\s*(\d{2})`)
-	salaryLineRe  = regexp.MustCompile(`(?i)(?:gaji|upah|salary|penghasilan)[^\n]*`)
-	hoursLineRe   = regexp.MustCompile(`(?i)(?:jam\s+kerja|working\s+hours?|shift\s+\d)[^\n]*`)
-	companyRe     = regexp.MustCompile(`(?i)\b(?:PT|CV|UD|Toko|Kedai|Resto|Warung|Koperasi|Yayasan)[ \t]+[^\n*]{2,50}`)
-	locationPhrRe = regexp.MustCompile(`(?i)(?:lokasi|penempatan|area|daerah|wilayah)\s*[:\s]+([^\n]{3,50})`)
-	bulletRe      = regexp.MustCompile(`^(?:\d+[.)]\s*|[•\-*✅✓☑❌➡️👉]+\s*)`)
+	phoneRe        = regexp.MustCompile(`(?:\+?62[\s\-]?|0)8\d{1,3}[\s\-.]?\d{3,5}[\s\-.]?\d{3,5}[\s\-.]?\d{0,4}`)
+	emailRe        = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
+	ageMaxRe       = regexp.MustCompile(`(?i)(?:usia\s+)?(?:maks?(?:imal)?\.?\s*|max\.?\s*)(\d{2})`)
+	ageRangeRe     = regexp.MustCompile(`(?i)usia\s+(\d{2})\s*[-–]\s*(\d{2})`)
+	salaryLineRe   = regexp.MustCompile(`(?i)(?:gaji|upah|salary|penghasilan)[^\n]*`)
+	hoursLineRe    = regexp.MustCompile(`(?i)(?:jam\s+kerja|working\s+hours?|shift\s+\d)[^\n]*`)
+	companyRe      = regexp.MustCompile(`(?i)\b(?:PT|CV|UD|Toko|Kedai|Resto|Warung|Koperasi|Yayasan)[ \t]+[^\n*]{2,50}`)
+	locationPhrRe  = regexp.MustCompile(`(?i)(?:lokasi|penempatan|area|daerah|wilayah)\s*[:\s]+([^\n]{3,50})`)
+	bulletRe       = regexp.MustCompile(`^(?:\d+[.)]\s*|[•\-*✅✓☑❌➡️👉]+\s*)`)
+	positionLineRe = regexp.MustCompile(`(?i)^(?:posisi|position|jabatan)\s*[:\-]\s*(.+)$`)
+	genericTitleRe = regexp.MustCompile(`(?i)^(?:lowongan(?:\s+kerja)?(?:\s+\w+){0,3}|hi jobseeker|we(?:['’]re| are)\s+hiring(?:\s*[-–]\s*.*)?|hiring)\s*$`)
+	needRoleRe     = regexp.MustCompile(`(?i)\bneed\s+[a-z0-9][a-z0-9\s/\-]{2,40}\b`)
+	inlineRoleRe   = regexp.MustCompile(`(?i)\b(?:untuk\s+posisi|posisi)\s*:\s*([a-z0-9][a-z0-9\s/&,+\-]{2,60})`)
 )
 
 // ── keyword lists ──
@@ -64,7 +68,7 @@ var jobKeywords = []string{
 	"tenaga kerja", "pegawai", "staff", "vacancy",
 	"penempatan", "join tim", "bergabung",
 	"urgently needed", "urgently required", "we need",
-	"looking for", "job vacancy", "open position",
+	"looking for", "job vacancy", "open position", "need ",
 }
 
 var jobPrefixes = []string{
@@ -76,9 +80,9 @@ var jobPrefixes = []string{
 	"membutuhkan segera", "membutuhkan",
 }
 
-var maleWords   = []string{"laki-laki", "laki laki", "pria", "cowok"}
+var maleWords = []string{"laki-laki", "laki laki", "pria", "cowok"}
 var femaleWords = []string{"wanita", "perempuan", "cewek", "karyawati"}
-var eduLevels   = []string{"s2", "s1", "d4", "d3", "d2", "d1", "smk", "sma/smk", "sma", "smp", "sd"}
+var eduLevels = []string{"s2", "s1", "d4", "d3", "d2", "d1", "smk", "sma/smk", "sma", "smp", "sd"}
 
 var citiesID = []string{
 	"semarang", "jakarta", "surabaya", "bandung", "yogyakarta", "solo",
@@ -95,6 +99,9 @@ func IsJobPosting(text string) bool {
 		if strings.Contains(lower, kw) {
 			return true
 		}
+	}
+	if needRoleRe.MatchString(text) {
+		return true
 	}
 	return false
 }
@@ -124,20 +131,46 @@ func Extract(text string) *JobPosting {
 // ── field extractors ──
 
 func extractTitle(lines []string) string {
+	if title := extractPositionLine(lines); title != "" {
+		return title
+	}
+
+	if title := extractInlineRole(lines); title != "" {
+		return title
+	}
+
+	for _, line := range lines {
+		clean := cleanHeadlineTitle(line)
+		if isGoodTitle(clean) {
+			return titleCase(clean)
+		}
+	}
+
 	for _, line := range lines {
 		rest := stripJobPrefix(line)
 		if rest == "" {
 			continue
 		}
 		clean := cleanText(rest)
-		if len(clean) >= 3 && len(clean) <= 80 {
+		if len(clean) >= 3 && len(clean) <= 80 && !isGenericTitle(clean) {
 			return titleCase(clean)
 		}
 	}
+
+	for _, line := range lines {
+		clean := cleanText(stripGenericLead(line))
+		if isGoodTitle(clean) {
+			return titleCase(clean)
+		}
+	}
+
 	// fallback: first short line whose cleaned form is not a pure noise word
 	for _, line := range lines {
 		clean := cleanText(line)
 		if len(clean) < 3 || len(clean) > 60 || strings.Contains(clean, "@") {
+			continue
+		}
+		if isGenericTitle(clean) {
 			continue
 		}
 		cleanLower := strings.ToLower(clean)
@@ -323,6 +356,93 @@ func stripJobPrefix(line string) string {
 	return ""
 }
 
+func extractPositionLine(lines []string) string {
+	for i, line := range lines {
+		if m := positionLineRe.FindStringSubmatch(line); len(m) == 2 {
+			clean := cleanText(m[1])
+			if isGoodTitle(clean) {
+				return titleCase(clean)
+			}
+			if next := nextRoleBullet(lines, i+1); next != "" {
+				return next
+			}
+		}
+	}
+	return ""
+}
+
+func extractInlineRole(lines []string) string {
+	for _, line := range lines {
+		if m := inlineRoleRe.FindStringSubmatch(line); len(m) == 2 {
+			clean := cleanText(m[1])
+			clean = trimAtSection(clean)
+			if isGoodTitle(clean) {
+				return titleCase(clean)
+			}
+		}
+	}
+	return ""
+}
+
+func nextRoleBullet(lines []string, start int) string {
+	for i := start; i < len(lines) && i < start+3; i++ {
+		clean := cleanText(bulletRe.ReplaceAllString(lines[i], ""))
+		clean = trimAtSection(clean)
+		if isGoodTitle(clean) {
+			return titleCase(clean)
+		}
+		if isSectionHeader(clean) {
+			break
+		}
+	}
+	return ""
+}
+
+func stripGenericLead(line string) string {
+	line = strings.TrimSpace(line)
+	lower := strings.ToLower(line)
+	switch {
+	case strings.HasPrefix(lower, "we're hiring -"):
+		return strings.TrimSpace(line[len("we're hiring -"):])
+	case strings.HasPrefix(lower, "we're hiring –"):
+		return strings.TrimSpace(line[len("we're hiring –"):])
+	case strings.HasPrefix(lower, "we are hiring -"):
+		return strings.TrimSpace(line[len("we are hiring -"):])
+	case strings.HasPrefix(lower, "we are hiring –"):
+		return strings.TrimSpace(line[len("we are hiring –"):])
+	case strings.HasPrefix(lower, "lowongan kerja -"):
+		return strings.TrimSpace(line[len("lowongan kerja -"):])
+	case strings.HasPrefix(lower, "lowongan kerja –"):
+		return strings.TrimSpace(line[len("lowongan kerja –"):])
+	case strings.HasPrefix(lower, "lowongan kerja semarang -"):
+		return strings.TrimSpace(line[len("lowongan kerja semarang -"):])
+	case strings.HasPrefix(lower, "lowongan kerja semarang –"):
+		return strings.TrimSpace(line[len("lowongan kerja semarang –"):])
+	}
+	return line
+}
+
+func cleanHeadlineTitle(line string) string {
+	line = cleanText(line)
+	lower := strings.ToLower(line)
+	candidates := []string{
+		"lowongan kerja semarang",
+		"lowongan kerja",
+		"lowongan",
+		"we're hiring",
+		"we are hiring",
+		"hiring",
+	}
+	for _, p := range candidates {
+		if strings.HasPrefix(lower, p) {
+			rest := strings.TrimSpace(line[len(p):])
+			rest = strings.TrimLeft(rest, "-–:| ")
+			return trimAtSection(cleanText(rest))
+		}
+	}
+	return trimAtSection(line)
+}
+
 func cleanText(s string) string {
 	s = strings.ReplaceAll(s, "*", "")
 	s = strings.ReplaceAll(s, "_", " ")
@@ -350,6 +470,72 @@ func containsAny(s string, keywords []string) bool {
 		}
 	}
 	return false
+}
+
+func isGenericTitle(s string) bool {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return false
+	}
+	return genericTitleRe.MatchString(s)
+}
+
+func isGoodTitle(s string) bool {
+	if len(s) < 3 || len(s) > 80 {
+		return false
+	}
+	if strings.Contains(s, "@") {
+		return false
+	}
+	if isGenericTitle(s) {
+		return false
+	}
+	if isSectionHeader(s) {
+		return false
+	}
+	lower := strings.ToLower(s)
+	if strings.HasPrefix(lower, "cv ") || strings.HasPrefix(lower, "kirim cv") {
+		return false
+	}
+	if strings.HasPrefix(lower, "lokasi ") || strings.HasPrefix(lower, "lokasi:") {
+		return false
+	}
+	if strings.HasPrefix(lower, "segera kirim lamaran") {
+		return false
+	}
+	if strings.Contains(lower, "membuka kesempatan") || strings.Contains(lower, "bergabung untuk posisi") {
+		return false
+	}
+	return true
+}
+
+func isSectionHeader(s string) bool {
+	switch normHeader(s) {
+	case "posisi", "posisi dibuka", "ringkasan", "kualifikasi", "persyaratan", "benefit",
+		"cara melamar", "deskripsi pekerjaan", "job description", "jobdesk", "lokasi",
+		"yang dilamar", "yang dibuka", "dibuka":
+		return true
+	default:
+		return false
+	}
+}
+
+func normHeader(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	s = strings.Trim(s, ":- ")
+	return s
+}
+
+func trimAtSection(s string) string {
+	lower := strings.ToLower(s)
+	markers := []string{" ringkasan", " kualifikasi", " benefit", " cara melamar", " lokasi:"}
+	cut := len(s)
+	for _, marker := range markers {
+		if idx := strings.Index(lower, marker); idx >= 0 && idx < cut {
+			cut = idx
+		}
+	}
+	return strings.TrimSpace(s[:cut])
 }
 
 func normalizePhone(phone string) string {

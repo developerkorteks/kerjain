@@ -1,8 +1,8 @@
 package api
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
@@ -33,13 +33,13 @@ var upgrader = websocket.Upgrader{
 }
 
 type Handler struct {
-	manager    *whatsapp.Manager
-	hub        *hub.Hub
-	store      *storage.Storage
-	mu         sync.RWMutex
-	lastQR     string
-	lastQRPNG  []byte
-	ingestKey  string
+	manager   *whatsapp.Manager
+	hub       *hub.Hub
+	store     *storage.Storage
+	mu        sync.RWMutex
+	lastQR    string
+	lastQRPNG []byte
+	ingestKey string
 }
 
 func New(manager *whatsapp.Manager, h *hub.Hub, store *storage.Storage) *Handler {
@@ -77,13 +77,11 @@ func New(manager *whatsapp.Manager, h *hub.Hub, store *storage.Storage) *Handler
 		h.Broadcast("groups", groups)
 	}
 
-	// Ingest API key: read from env or generate random on startup
+	// Ingest API key: read from env or fall back to a static default
 	key := os.Getenv("INGEST_API_KEY")
 	if key == "" {
-		b := make([]byte, 16)
-		_, _ = rand.Read(b)
-		key = hex.EncodeToString(b)
-		fmt.Printf("[ingest] No INGEST_API_KEY set — generated ephemeral key: %s\n", key)
+		key = "kerjain2025"
+		fmt.Printf("[ingest] No INGEST_API_KEY set — using default key: %s\n", key)
 	}
 	handler.ingestKey = key
 
@@ -100,6 +98,7 @@ func (h *Handler) Register(r *gin.Engine, mediaDir string) {
 	api.POST("/logout", h.postLogout)
 	api.POST("/connect", h.postConnect)
 	api.GET("/jobs", h.listJobs)
+	api.GET("/jobs/summary", h.jobsSummary)
 	api.GET("/jobs/:id", h.getJob)
 	api.PATCH("/jobs/:id", h.patchJob)
 	api.DELETE("/jobs/:id", h.deleteJob)
@@ -194,6 +193,7 @@ func (h *Handler) listJobs(c *gin.Context) {
 		MsgType:      c.Query("type"),
 		Status:       c.Query("status"),
 		Search:       c.Query("q"),
+		Role:         c.Query("role"),
 		Sort:         c.Query("sort"),
 		DateFrom:     c.Query("date_from"),
 		IsJobPosting: isJobPtr,
@@ -205,6 +205,35 @@ func (h *Handler) listJobs(c *gin.Context) {
 		return
 	}
 	result, err := h.store.List(f)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *Handler) jobsSummary(c *gin.Context) {
+	var isJobPtr *bool
+	switch c.Query("is_job_posting") {
+	case "false":
+		b := false
+		isJobPtr = &b
+	case "any":
+	default:
+		b := true
+		isJobPtr = &b
+	}
+
+	f := storage.Filter{
+		MsgType:      c.Query("type"),
+		Search:       c.Query("q"),
+		IsJobPosting: isJobPtr,
+	}
+	if h.store == nil {
+		c.JSON(http.StatusOK, storage.Summary{})
+		return
+	}
+	result, err := h.store.Summary(f)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -355,13 +384,13 @@ func (h *Handler) wsHandler(c *gin.Context) {
 // ── ingest endpoint ──────────────────────────────────────────────────────────
 
 type ingestRequest struct {
-	Text      string `json:"text"`        // raw post caption / body
-	Source    string `json:"source"`      // e.g. "instagram"
-	Account   string `json:"account"`     // e.g. "@lokersmg"
-	PostedAt  string `json:"posted_at"`   // RFC3339, optional
-	MsgID     string `json:"msg_id"`      // unique ID from source
-	MediaPath string `json:"media_path"`  // filename inside mediaDir, optional
-	MediaMIME string `json:"media_mime"`  // e.g. "image/jpeg"
+	Text      string `json:"text"`       // raw post caption / body
+	Source    string `json:"source"`     // e.g. "instagram"
+	Account   string `json:"account"`    // e.g. "@lokersmg"
+	PostedAt  string `json:"posted_at"`  // RFC3339, optional
+	MsgID     string `json:"msg_id"`     // unique ID from source
+	MediaPath string `json:"media_path"` // filename inside mediaDir, optional
+	MediaMIME string `json:"media_mime"` // e.g. "image/jpeg"
 	APIKey    string `json:"api_key"`
 }
 
@@ -419,10 +448,10 @@ func (h *Handler) ingestHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"ok":           true,
-		"id":           ext.ID,
-		"is_job":       ext.IsJobPosting,
-		"title":        ext.Title,
+		"ok":     true,
+		"id":     ext.ID,
+		"is_job": ext.IsJobPosting,
+		"title":  ext.Title,
 	})
 }
 

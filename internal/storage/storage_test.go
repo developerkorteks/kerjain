@@ -159,6 +159,147 @@ func TestList_FilterGroup(t *testing.T) {
 	}
 }
 
+func TestList_FilterRole(t *testing.T) {
+	s := newTestDB(t)
+
+	j1 := job("r1", "valid", "text")
+	j1.Title = "Admin Gudang"
+	j1.RawText = "Dibutuhkan admin gudang"
+
+	j2 := job("r2", "valid", "text")
+	j2.Title = "Cook"
+	j2.RawText = "Lowongan cook restoran"
+
+	j3 := job("r3", "valid", "text")
+	j3.Title = "Freelance Tutor"
+	j3.RawText = "Freelance tutor matematika"
+
+	j4 := job("r4", "valid", "text")
+	j4.Title = "Sales Store"
+	j4.RawText = "Customer service toko"
+
+	j5 := job("r5", "valid", "text")
+	j5.Title = "Part Time Barista"
+	j5.RawText = "Part time barista coffee shop"
+
+	for _, j := range []*extractor.JobPosting{j1, j2, j3, j4, j5} {
+		if err := s.Save(j); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	cases := []struct {
+		role string
+		want int
+	}{
+		{"admin", 1},
+		{"kitchen", 1},
+		{"freelance", 1},
+		{"parttime", 1},
+		{"sales", 1},
+		{"staff", 0},
+	}
+	for _, tc := range cases {
+		p, err := s.List(Filter{Role: tc.role, Limit: 10, Page: 1})
+		if err != nil {
+			t.Fatalf("List role=%q: %v", tc.role, err)
+		}
+		if p.Total != tc.want {
+			t.Errorf("role=%q → total=%d, want %d", tc.role, p.Total, tc.want)
+		}
+	}
+}
+
+func TestSummary(t *testing.T) {
+	s := newTestDB(t)
+
+	j1 := job("sum1", "raw", "text")
+	j1.SourceGroup = "group-a@g.us"
+	j1.GroupName = "Group A"
+
+	j2 := job("sum2", "review", "text")
+	j2.SourceGroup = "group-a@g.us"
+	j2.GroupName = "Group A"
+
+	j3 := job("sum3", "valid", "image")
+	j3.SourceGroup = "group-b@g.us"
+	j3.GroupName = "Group B"
+
+	for _, j := range []*extractor.JobPosting{j1, j2, j3} {
+		if err := s.Save(j); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	summary, err := s.Summary(Filter{Limit: 10, Page: 1})
+	if err != nil {
+		t.Fatalf("Summary: %v", err)
+	}
+	if summary.Totals.Raw != 1 || summary.Totals.Review != 1 || summary.Totals.Valid != 1 {
+		t.Fatalf("unexpected totals: %+v", summary.Totals)
+	}
+	if len(summary.Groups) != 2 {
+		t.Fatalf("groups=%d, want 2", len(summary.Groups))
+	}
+	if summary.Groups[0].Group != "group-a@g.us" {
+		t.Fatalf("expected Group A first due raw priority, got %q", summary.Groups[0].Group)
+	}
+}
+
+func TestList_Search(t *testing.T) {
+	s := newTestDB(t)
+
+	j1 := job("s1", "valid", "text")
+	j1.Title = "Admin Gudang"
+	j1.Company = "PT Sumber Pangan"
+	j1.Location = "Semarang Barat"
+	j1.RawText = "Dibutuhkan admin gudang jujur dan teliti"
+
+	j2 := job("s2", "valid", "text")
+	j2.Title = "Barista"
+	j2.Company = "Kopi Kota"
+	j2.Location = "Tembalang"
+	j2.RawText = "Dicari barista full time untuk coffee shop"
+
+	j3 := job("s3", "valid", "text")
+	j3.Title = "Kasir Toko"
+	j3.Company = "UD Maju Jaya"
+	j3.Location = "Semarang Timur"
+	j3.RawText = "Lowongan kasir untuk toko sembako"
+
+	if err := s.Save(j1); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Save(j2); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Save(j3); err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		query string
+		want  int
+	}{
+		{"admin", 1},
+		{"sumber pangan", 1},
+		{"semarang", 2},
+		{"baris", 1},
+		{"kasir toko", 1},
+		{"gudang semarang", 1},
+		{"marketing", 0},
+	}
+	for _, tc := range cases {
+		p, err := s.List(Filter{Search: tc.query, Limit: 10, Page: 1})
+		if err != nil {
+			t.Fatalf("List search=%q: %v", tc.query, err)
+		}
+		if p.Total != tc.want {
+			t.Errorf("search=%q → total=%d, want %d", tc.query, p.Total, tc.want)
+		}
+	}
+}
+
 // ── Pagination ────────────────────────────────────────────────────────────────
 
 func TestList_Pagination(t *testing.T) {

@@ -8,6 +8,18 @@ import requests as _req
 from . import services
 from .services import APIError
 
+ROLE_OPTIONS = [
+    {"slug": "admin", "label": "Admin"},
+    {"slug": "staff", "label": "Staff"},
+    {"slug": "sales", "label": "Sales/CS"},
+    {"slug": "kitchen", "label": "Kitchen"},
+    {"slug": "barista", "label": "Barista/F&B"},
+    {"slug": "produksi", "label": "Gudang/Produksi"},
+    {"slug": "tutor", "label": "Tutor"},
+    {"slug": "parttime", "label": "Part Time"},
+    {"slug": "freelance", "label": "Freelance"},
+]
+
 
 def media_proxy(request, path):
     try:
@@ -49,14 +61,19 @@ def job_list(request):
     msg_type = request.GET.get("type", "")
     group = request.GET.get("group", "")
     query = request.GET.get("q", "")
+    role = request.GET.get("role", "")
     sort = request.GET.get("sort", "newest")
-    date_filter = request.GET.get("date", "")  # "today" | "week" | ""
+    date_filter = request.GET.get("date", "")  # "today" | "3days" | "week" | "month" | ""
 
     date_from = None
     if date_filter == "today":
         date_from = str(date.today())
+    elif date_filter == "3days":
+        date_from = str(date.today() - timedelta(days=3))
     elif date_filter == "week":
         date_from = str(date.today() - timedelta(days=7))
+    elif date_filter == "month":
+        date_from = str(date.today() - timedelta(days=30))
 
     limit = settings.JOBS_PER_PAGE
     try:
@@ -67,6 +84,7 @@ def job_list(request):
             msg_type=msg_type or None,
             group=group or None,
             search=query or None,
+            role=role or None,
             sort=sort if sort in ("newest", "oldest") else "newest",
             date_from=date_from,
         )
@@ -90,8 +108,10 @@ def job_list(request):
         "current_type": msg_type,
         "current_group": group,
         "current_query": query,
+        "current_role": role,
         "current_sort": sort,
         "current_date": date_filter,
+        "role_options": ROLE_OPTIONS,
         "per_page": limit,
     })
 

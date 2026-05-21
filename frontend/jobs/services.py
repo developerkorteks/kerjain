@@ -22,8 +22,8 @@ def _get(path, **params):
         raise APIError("Terjadi kesalahan. Silakan coba lagi nanti.")
 
 
-def get_jobs(page=1, limit=12, status=None, msg_type=None, group=None, search=None, sort=None, date_from=None):
-    data = _get("/api/jobs", page=page, limit=limit, status=status, type=msg_type, group=group, q=search, sort=sort, date_from=date_from)
+def get_jobs(page=1, limit=12, status=None, msg_type=None, group=None, search=None, role=None, sort=None, date_from=None):
+    data = _get("/api/jobs", page=page, limit=limit, status=status, type=msg_type, group=group, q=search, role=role, sort=sort, date_from=date_from)
     if data is None:
         return {"total": 0, "page": page, "limit": limit, "jobs": []}
     return data
